@@ -1,18 +1,20 @@
 import React, { useState, useRef } from "react";
 import SignatureCanvas from "react-signature-canvas";
-const Card = ({ children }) => <div style={{ padding: '16px', border: '1px solid #ccc', borderRadius: '8px', marginBottom: '16px' }}>{children}</div>;
-const CardContent = ({ children }) => <div>{children}</div>;
-const Button = ({ onClick, children, className }) => (
-    <button onClick={onClick} style={{ padding: '8px 16px', backgroundColor: '#1d4ed8', color: '#fff', borderRadius: '4px', margin: '4px 0' }}>
-        {children}
-    </button>
-);
+import { Card, CardContent, TextField, Button, Typography, Box } from "@mui/material";
 
 const SessionLogger = () => {
+    // Get today's date in YYYY-MM-DD format
+    const getCurrentDate = () => {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
     const [studentName, setStudentName] = useState("");
     const [sessionTopic, setSessionTopic] = useState("");
-    const [sessionDate, setSessionDate] = useState("");
-    const [sessions, setSessions] = useState([]);
+    const [sessionDate, setSessionDate] = useState(getCurrentDate()); // Default to today's date
     const signatureRef = useRef(null);
 
     const clearSignature = () => {
@@ -21,47 +23,68 @@ const SessionLogger = () => {
 
     const saveSession = () => {
         if (studentName && sessionTopic && sessionDate && !signatureRef.current.isEmpty()) {
-            const newSession = {
-                studentName,
-                sessionTopic,
-                sessionDate,
-                signature: signatureRef.current.toDataURL()
-            };
-            setSessions([...sessions, newSession]);
+            // Save session logic here (e.g., to a database)
             setStudentName("");
             setSessionTopic("");
-            setSessionDate("");
+            setSessionDate(getCurrentDate()); // Reset to today's date after saving
             signatureRef.current.clear();
         }
     };
 
     return (
-        <div className="p-4">
-            <Card>
+        <Box p={4}>
+            <Card variant="outlined" sx={{ mb: 4 }}>
                 <CardContent>
-                    <h2 className="text-xl font-bold mb-4">Log Session</h2>
-                    <input className="w-full mb-2 p-2 border" placeholder="Student Name" value={studentName} onChange={e => setStudentName(e.target.value)} />
-                    <textarea className="w-full mb-2 p-2 border" placeholder="Session Topic" value={sessionTopic} onChange={e => setSessionTopic(e.target.value)} />
-                    <input type="date" className="w-full mb-2 p-2 border" value={sessionDate} onChange={e => setSessionDate(e.target.value)} />
-                    <h3 className="mt-4 mb-2">Signature:</h3>
-                    <SignatureCanvas penColor="black" ref={signatureRef} canvasProps={{ className: "border w-full h-32 mb-2" }} />
-                    <Button onClick={clearSignature} className="mb-2">Clear Signature</Button>
-                    <Button onClick={saveSession} className="w-full">Save Session</Button>
+                    <Typography variant="h5" component="h2" sx={{ mb: 2 }}>Log Session</Typography>
+                    <TextField
+                        fullWidth
+                        label="Student Name"
+                        variant="outlined"
+                        value={studentName}
+                        onChange={e => setStudentName(e.target.value)}
+                        sx={{ mb: 2 }}
+                    />
+                    <TextField
+                        fullWidth
+                        label="Session Topic"
+                        variant="outlined"
+                        multiline
+                        rows={3}
+                        value={sessionTopic}
+                        onChange={e => setSessionTopic(e.target.value)}
+                        sx={{ mb: 2 }}
+                    />
+                    <TextField
+                        fullWidth
+                        label="Session Date"
+                        variant="outlined"
+                        type="date"
+                        InputLabelProps={{ shrink: true }}
+                        value={sessionDate}
+                        onChange={e => setSessionDate(e.target.value)}
+                        sx={{ mb: 2 }}
+                    />
+                    <Typography variant="h6" component="h3" sx={{ mt: 2, mb: 1 }}>Signature:</Typography>
+                    <SignatureCanvas
+                        penColor="black"
+                        ref={signatureRef}
+                        canvasProps={{
+                            className: "signatureCanvas",
+                            style: {
+                                border: '1px solid #ccc',
+                                width: '100%',
+                                height: '250px',  // Increased height for larger signature box
+                                marginBottom: '8px'
+                            }
+                        }}
+                    />
+                    <Box display="flex" gap={2} mb={2}>
+                        <Button variant="outlined" color="secondary" onClick={clearSignature}>Clear Signature</Button>
+                        <Button variant="contained" color="primary" onClick={saveSession}>Save Session</Button>
+                    </Box>
                 </CardContent>
             </Card>
-            <h2 className="text-xl font-bold mt-4">Logged Sessions</h2>
-            {sessions.length === 0 ? <p>No sessions recorded yet.</p> : (
-                <ul>
-                    {sessions.map((session, index) => (
-                        <li key={index} className="mb-2 border-b pb-2">
-                            <strong>{session.studentName}</strong> - {session.sessionDate}
-                            <p>{session.sessionTopic}</p>
-                            <img src={session.signature} alt="Signature" className="w-32 border mt-2" />
-                        </li>
-                    ))}
-                </ul>
-            )}
-        </div>
+        </Box>
     );
 };
 
