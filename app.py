@@ -6,8 +6,9 @@ from dotenv import load_dotenv
 from datetime import timedelta
 import secrets
 import os
+from auth.user import StaticUser
 
-load_dotenv()
+load_dotenv(override=True)
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -24,11 +25,13 @@ login_manager.login_view = 'auth.login'
 
 # Import User AFTER db is initialized
 from models import User  
+# Return the same static user
 
-# Flask-Login User Loader
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    if user_id == 1: # Ensure it matches the static user ID
+        return StaticUser() # Flask-Login User Loader
+    return None
 
 # Ensure signature folder exists
 if not os.path.exists('static/signatures'):
