@@ -1,8 +1,9 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, session
-from flask_login import login_user, login_required, logout_user, current_user, UserMixin
+from flask_login import login_user, login_required, logout_user, current_user
 from app import bcrypt
 import os
 from dotenv import load_dotenv
+from auth.user import StaticUser
 
 # Load environment variables from .env
 load_dotenv(override=True)
@@ -12,9 +13,6 @@ auth = Blueprint('auth', __name__)
 # Load credentials from .env
 USERNAME = os.getenv("ADMIN_USERNAME")
 PASSWORD_HASH = os.getenv("ADMIN_PASSWORD")
-
-class StaticUser(UserMixin):  
-    id = 1  # Required for Flask-Login
 
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
@@ -28,6 +26,7 @@ def login():
             user = StaticUser()  # Create dummy user object
             login_user(user, remember=True)
             session.permanent = True
+            print(f"📝 Session Data After Login: {session}")  # Debugging session contents
 
             print(f"🔍 Is user authenticated? {current_user.is_authenticated}")  # Debugging
             return redirect(url_for('sessions.log_session'))

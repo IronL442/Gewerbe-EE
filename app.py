@@ -1,4 +1,5 @@
 from flask import Flask, redirect, url_for
+from flask_session import Session
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
@@ -12,6 +13,9 @@ load_dotenv(override=True)
 
 # Initialize Flask app
 app = Flask(__name__)
+app.config["SESSION_PERMANENT"] = False
+app.config["SESSION_TYPE"] = "filesystem"  # Store session data in a file
+Session(app)  # Initialize Flask-Session
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY", secrets.token_hex(32))  # Use .env or generate a fallback key
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=8)  # Sessions last for 8 hours
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://myuser:mypassword@localhost:5432/enterprise-db'
@@ -29,8 +33,11 @@ from models import User
 
 @login_manager.user_loader
 def load_user(user_id):
-    if user_id == 1: # Ensure it matches the static user ID
+    print(f"🔄 Trying to load user {user_id}")  # Debugging output
+    if user_id == "1": # Ensure it matches the static user ID
+        print("✅ User loaded successfully")  # Debugging output
         return StaticUser() # Flask-Login User Loader
+    print("❌ No user found")  # Debugging output
     return None
 
 # Ensure signature folder exists
