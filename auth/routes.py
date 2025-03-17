@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for
+from flask import Blueprint, render_template, request, flash, redirect, url_for, session
 from flask_login import login_user, login_required, logout_user, UserMixin
 from app import bcrypt
 import os
@@ -24,9 +24,10 @@ def login():
 
         # Compare input with stored credentials
         if username == USERNAME and bcrypt.check_password_hash(PASSWORD_HASH, password):
-            user = StaticUser()  # Create a fake user
-            login_user(user)
-            return redirect(url_for('sessions.dashboard'))
+            user = StaticUser()  # Create dummy user object
+            login_user(user, remember=True)
+            session.permanent = True
+            return redirect(url_for('sessions.log_session'))
         else:
             flash('Invalid username or password', 'danger')
 
