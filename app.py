@@ -4,14 +4,15 @@ from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
 from dotenv import load_dotenv
 from datetime import timedelta
+import secrets
 import os
 
 load_dotenv()
 
 # Initialize Flask app
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.getenv("SECRET_KEY", "fallback_secret_key")  # Load from .env or use fallback
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=8)  # Sessions last for 8 hour
+app.config['SECRET_KEY'] = os.getenv("SECRET_KEY", secrets.token_hex(32))  # Use .env or generate a fallback key
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=8)  # Sessions last for 8 hours
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://myuser:mypassword@localhost:5432/enterprise-db'
 
 db = SQLAlchemy()  # Initialize without an app
