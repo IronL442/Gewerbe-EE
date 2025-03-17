@@ -32,7 +32,7 @@
             <h2>Sign below</h2>
             {% include 'signature_form.html' %}
             <button type="submit" class="btn btn-success">Save Session</button>
-            <a href="{{ url_for('sessions.dashboard') }}" class="btn btn-secondary">Cancel</a>
+            <button type="button" class="btn btn-secondary" onclick="clearSignature()">Cancel</button>
         </form>
     </div>
 </body>
