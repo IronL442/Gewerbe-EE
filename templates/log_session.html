@@ -29,10 +29,8 @@
                 <label class="form-label">Session Topic</label>
                 <input type="text" name="session_topic" class="form-control" required>
             </div>
-            <div class="mb-3">
-                <label class="form-label">Signature</label>
-                <input type="file" name="signature" class="form-control" required>
-            </div>
+            <h2>Sign below</h2>
+            {% include 'signature_form.html' %}
             <button type="submit" class="btn btn-success">Save Session</button>
             <a href="{{ url_for('sessions.dashboard') }}" class="btn btn-secondary">Cancel</a>
         </form>
