@@ -10,8 +10,8 @@ load_dotenv()
 auth = Blueprint('auth', __name__)
 
 # Load credentials from .env
-HARDCODED_USERNAME = os.getenv("ADMIN_USERNAME")
-HARDCODED_PASSWORD_HASH = bcrypt.generate_password_hash(os.getenv("ADMIN_PASSWORD")).decode("utf-8")
+USERNAME = os.getenv("ADMIN_USERNAME")
+PASSWORD_HASH = bcrypt.generate_password_hash(os.getenv("ADMIN_PASSWORD")).decode("utf-8")
 
 class StaticUser(UserMixin):  
     id = 1  # Required for Flask-Login
@@ -23,7 +23,7 @@ def login():
         password = request.form['password']
 
         # Compare input with stored credentials
-        if username == HARDCODED_USERNAME and bcrypt.check_password_hash(HARDCODED_PASSWORD_HASH, password):
+        if username == USERNAME and bcrypt.check_password_hash(PASSWORD_HASH, password):
             user = StaticUser()  # Create a fake user
             login_user(user)
             return redirect(url_for('sessions.dashboard'))
