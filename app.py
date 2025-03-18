@@ -27,8 +27,6 @@ bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'auth.login'
 
-# Import User AFTER db is initialized
-from models import User  
 # Return the same static user
 
 @login_manager.user_loader

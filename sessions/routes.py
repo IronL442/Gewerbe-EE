@@ -22,6 +22,14 @@ def log_session():
         session_topic = request.form.get('session_topic', '').strip()
         signature_data = request.form.get('signature_data')
 
+        print("📥 Received form data:", request.form)  # Print received form data
+
+        # Debug: Check if current_user.id exists
+        print(f"🆔 User ID: {current_user.id if current_user else 'None'}")
+
+        # Debug: Print field types before creating the session
+        print(f"🛠️ Field types -> student_name: {type(student_name)}, date: {type(date)}, start_time: {type(start_time)}, end_time: {type(end_time)}, session_topic: {type(session_topic)}")
+
         # Check for missing required fields
         if not student_name or not date or not start_time or not end_time or not session_topic:
             flash('All fields are required!', 'danger')
@@ -41,8 +49,6 @@ def log_session():
         signature_image = signature_data.replace("data:image/png;base64,", "")
         with open(signature_path, "wb") as f:
             f.write(base64.b64decode(signature_image))
-
-        print("📥 Received form data:", request.form)  # Print received form data
 
         # Save session to database
         new_session = StudySession(
