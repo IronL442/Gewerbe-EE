@@ -8,6 +8,7 @@ from datetime import timedelta
 import secrets
 import os
 from auth.user import StaticUser
+from flask_migrate import Migrate
 
 load_dotenv(override=True)
 
@@ -22,6 +23,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://myuser:mypassword@localhos
 
 db = SQLAlchemy()  # Initialize without an app
 db.init_app(app)   # Bind later in app.py
+
+migrate = Migrate(app, db)
 
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
