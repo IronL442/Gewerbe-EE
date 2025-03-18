@@ -1,3 +1,52 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
 .env
-/__pycache__
-/flask_session/*
+.venv/
+env/
+*.egg-info/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Flask session and runtime files
+instance/
+flask_session/
+sessions/
+*.sqlite3
+*.db
+*.sqlite
+
+# IDE and editor settings
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs and debug files
+logs/
+*.log
+debug.log
+nohup.out
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Docker files (if not using Docker)
+#docker-compose.yml
+Dockerfile
+
+# Node.js (if frontend included)
+node_modules/
+npm-debug.log
+yarn.lock
+package-lock.json
+
+# Secrets and environment variables
+.env
+config.json
+credentials.json
