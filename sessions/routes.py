@@ -42,6 +42,8 @@ def log_session():
         with open(signature_path, "wb") as f:
             f.write(base64.b64decode(signature_image))
 
+        print("📥 Received form data:", request.form)  # Print received form data
+
         # Save session to database
         new_session = StudySession(
             user_id=current_user.id,
@@ -53,8 +55,13 @@ def log_session():
             signature_path=signature_path
         )
 
+        print("✅ Adding session to database...")
         db.session.add(new_session)
+
+        
+        print("🔄 Committing session to database...")
         db.session.commit()
+        print("✅ Session committed successfully!")
 
         flash('Session logged successfully!', 'success')
         return redirect(url_for('sessions.dashboard'))
