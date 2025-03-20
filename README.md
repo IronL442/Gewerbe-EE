@@ -49,11 +49,27 @@ flask db migrate -m "Initial migration"
 flask db upgrade
 ```
 
-### **6️⃣ Run the Application**
+### **6️⃣ Run the Backend**
 ```bash
 python run.py
 ```
 The app will be accessible at: **`http://127.0.0.1:5000`**
+
+### **7️⃣ Install the Frontend**
+
+#### **Install Frontend Dependencies**
+Navigate to the `frontend` directory and install the required Node.js packages:
+```bash
+cd frontend
+npm install
+```
+
+#### **8️⃣ Start the Frontend**
+Run the React development server:
+```bash
+npm run dev
+```
+The frontend will be accessible at: **`http://localhost:5173`**
 
 ---
 
