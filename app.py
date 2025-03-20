@@ -34,11 +34,8 @@ login_manager.login_view = 'auth.login'
 
 @login_manager.user_loader
 def load_user(user_id):
-    print(f"🔄 Trying to load user {user_id}")  # Debugging output
     if user_id == "1": # Ensure it matches the static user ID
-        print("✅ User loaded successfully")  # Debugging output
         return StaticUser() # Flask-Login User Loader
-    print("❌ No user found")  # Debugging output
     return None
 
 # Ensure signature folder exists
