@@ -1,24 +1,27 @@
 import React, { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const Login: React.FC = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await axios.post("/auth/login", {
-        username,
-        password,
-      });
+      const response = await axios.post(
+        "/auth/login",
+        { username, password },
+        { headers: { "Content-Type": "application/json" } }
+      );
       if (response.status === 200) {
-        window.location.href = "/sessions/log_session"; // Redirect to session page
+        navigate(response.data.redirect);
       }
-    } catch (err) {
-      setError("Invalid username or password");
+    } catch (err: any) {
+      setError(err.response?.data?.error || "Invalid username or password");
     }
   };
 

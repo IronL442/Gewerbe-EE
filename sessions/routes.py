@@ -1,75 +1,48 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for
-from flask_login import login_required, current_user
+from flask import Blueprint, request, jsonify
+from flask_login import login_required
 from models import db, StudySession
 import os
+import base64
+import uuid
 
-sessions = Blueprint('sessions', __name__)
+sessions = Blueprint("sessions", __name__)
 
-@sessions.route('/dashboard')
-@login_required
-def dashboard():
-    user_sessions = StudySession.query.filter_by(user_id=current_user.id).all()
-    return render_template('dashboard.html', sessions=user_sessions)
 
-@sessions.route('/log_session', methods=['GET', 'POST'])
+@sessions.route("/log_session", methods=["POST"])
 @login_required
 def log_session():
-    if request.method == 'POST':
-        student_name = request.form.get('student_name', '').strip()
-        date = request.form.get('date', '').strip()
-        start_time = request.form.get('start_time', '').strip()
-        end_time = request.form.get('end_time', '').strip()
-        session_topic = request.form.get('session_topic', '').strip()
-        signature_data = request.form.get('signature_data')
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "No JSON data provided"}), 400
 
-        print("📥 Received form data:", request.form)  # Print received form data
+    student_name = data.get("student_name", "").strip()
+    date = data.get("date", "").strip()
+    start_time = data.get("start_time", "").strip()
+    end_time = data.get("end_time", "").strip()
+    session_topic = data.get("session_topic", "").strip()
+    signature_data = data.get("signature_data")
 
-        # Debug: Check if current_user.id exists
-        print(f"🆔 User ID: {current_user.id if current_user else 'None'}")
+    if not all(
+        [student_name, date, start_time, end_time, session_topic, signature_data]
+    ):
+        return jsonify({"error": "All fields and signature are required"}), 400
 
-        # Debug: Print field types before creating the session
-        print(f"🛠️ Field types -> student_name: {type(student_name)}, date: {type(date)}, start_time: {type(start_time)}, end_time: {type(end_time)}, session_topic: {type(session_topic)}")
+    signature_filename = f"signature_{uuid.uuid4().hex}.png"
+    signature_path = os.path.join("data/signatures", signature_filename)
+    signature_image = signature_data.replace("data:image/png;base64,", "")
+    with open(signature_path, "wb") as f:
+        f.write(base64.b64decode(signature_image))
 
-        # Check for missing required fields
-        if not student_name or not date or not start_time or not end_time or not session_topic:
-            flash('All fields are required!', 'danger')
-            return redirect(url_for('sessions.log_session'))
-        
-        if not signature_data:
-            flash('Signature is required!', 'danger')
-            return redirect(url_for('sessions.log_session'))
+    new_session = StudySession(
+        student_name=student_name,
+        date=date,
+        start_time=start_time,
+        end_time=end_time,
+        session_topic=session_topic,
+        signature_path=signature_path,
+    )
 
-        # Process signature
-        import base64
-        import uuid
-        signature_filename = f"signature_{uuid.uuid4().hex}.png"
-        signature_path = os.path.join("static/signatures", signature_filename)
-        
-        # Decode and save signature
-        signature_image = signature_data.replace("data:image/png;base64,", "")
-        with open(signature_path, "wb") as f:
-            f.write(base64.b64decode(signature_image))
+    db.session.add(new_session)
+    db.session.commit()
 
-        # Save session to database
-        new_session = StudySession(
-            user_id=current_user.id,
-            student_name=student_name,
-            date=date,
-            start_time=start_time,
-            end_time=end_time,
-            session_topic=session_topic,
-            signature_path=signature_path
-        )
-
-        print("✅ Adding session to database...")
-        db.session.add(new_session)
-
-        
-        print("🔄 Committing session to database...")
-        db.session.commit()
-        print("✅ Session committed successfully!")
-
-        flash('Session logged successfully!', 'success')
-        return redirect(url_for('sessions.dashboard'))
-
-    return render_template('log_session.html')
+    return jsonify({"message": "Session logged successfully"}), 200
