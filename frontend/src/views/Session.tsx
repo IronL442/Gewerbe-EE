@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const Session: React.FC = () => {
   const [studentName, setStudentName] = useState("");
@@ -11,6 +12,7 @@ const Session: React.FC = () => {
   const [error, setError] = useState("");
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [drawing, setDrawing] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -50,7 +52,7 @@ const Session: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -78,10 +80,17 @@ const Session: React.FC = () => {
         signature_data: signatureData,
       });
       if (response.status === 200) {
-        window.location.href = "/sessions/dashboard"; // Redirect to dashboard
+        // Reset form fields to show an empty log session form
+        setStudentName("");
+        setDate("");
+        setStartTime("");
+        setEndTime("");
+        setSessionTopic("");
+        clearSignature();
+        setError(""); // Clear any previous errors
       }
-    } catch (err) {
-      setError("Failed to log session");
+    } catch (err: any) {
+      setError(err.response?.data?.error || "Failed to log session");
     }
   };
 
