@@ -53,9 +53,8 @@ flask db upgrade
 
 ### **6️⃣ Run the Backend**
 ```bash
-python run.py
+python backend/app.py
 ```
-The app will be accessible at: **`http://127.0.0.1:5000`**
 
 ### **7️⃣ Install the Frontend**
 
