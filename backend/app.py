@@ -3,27 +3,21 @@ from flask_session import Session
 from models.database import database, migrate
 from utils.encryption import bcrypt
 from flask_login import LoginManager
-from dotenv import load_dotenv
 from datetime import timedelta
-import secrets
 import os
 
 from blueprints.auth_blueprint import auth_blueprint
 from blueprints.session_blueprint import session_blueprint
 
-load_dotenv(override=True)
-
 app = Flask(__name__)
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
-app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", secrets.token_hex(32))
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=8)
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
-    "SQLALCHEMY_DATABASE_URI",
-    "postgresql://myuser:mypassword@localhost:5432/study_session",
+    "SQLALCHEMY_DATABASE_URI"
 )
-
 
 database.init_app(app)
 migrate.init_app(app, database)
@@ -58,4 +52,4 @@ def home():
 if __name__ == "__main__":
     with app.app_context():
         database.create_all()
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0")

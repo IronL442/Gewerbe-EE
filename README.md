@@ -21,19 +21,8 @@ git clone https://github.com/your-repo/study-session-tracker.git
 cd study-session-tracker
 ```
 
-### **2️⃣ Create a Virtual Environment**
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows use: venv\Scripts\activate
-```
-
-### **3️⃣ Install Dependencies**
-```bash
-pip install -r backend/requirements.txt
-```
-
-### **4️⃣ Set Up the `.env` File**
-Create a `.env` file in the root directory and add:
+### **2️⃣ Set Up the `.env` File**
+Create a `.env` file in the `/backend` directory and add:
 ```
 ADMIN_USERNAME="admin"
 ADMIN_PASSWORD="yourpassword"
@@ -42,35 +31,13 @@ SQLALCHEMY_DATABASE_URI="postgresql://myuser:mypassword@localhost:5432/study_ses
 ```
 > **Tip**: Generate a secure key with `import secrets; print(secrets.token_hex(32))`
 
-### **5️⃣ Set Up the Database**
+### **3️⃣ Setup Docker Container
 ```bash
-docker-compose up -d
-psql -h localhost -U myuser -d postgres -c "CREATE DATABASE study_session;"
-flask db init
-flask db migrate -m "Initial migration"
-flask db upgrade
+docker-compose up -d --build
+docker exec -it backend-container flask db init
+docker exec -it backend-container flask db migrate -m "Initial migration"
+docker exec -it backend-container flask db upgrade
 ```
-
-### **6️⃣ Run the Backend**
-```bash
-python backend/app.py
-```
-
-### **7️⃣ Install the Frontend**
-
-#### **Install Frontend Dependencies**
-Navigate to the `frontend` directory and install the required Node.js packages:
-```bash
-cd frontend
-npm install
-```
-
-#### **8️⃣ Start the Frontend**
-Run the React development server:
-```bash
-npm run dev
-```
-The frontend will be accessible at: **`http://localhost:5173`**
 
 ---
 
