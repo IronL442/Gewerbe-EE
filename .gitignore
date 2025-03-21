@@ -14,11 +14,14 @@ pip-delete-this-directory.txt
 
 # Flask session and runtime files
 instance/
-flask_session/*
+*flask_session
 sessions/
 *.sqlite3
 *.db
 *.sqlite
+
+# Migration files
+migrations/
 
 # IDE and editor settings
 .vscode/

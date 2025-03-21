@@ -38,12 +38,14 @@ Create a `.env` file in the root directory and add:
 ADMIN_USERNAME="admin"
 ADMIN_PASSWORD="yourpassword"
 SECRET_KEY="your_random_secure_key"
-SQLALCHEMY_DATABASE_URI="postgresql://youruser:yourpassword@localhost:5432/study_sessions"
+SQLALCHEMY_DATABASE_URI="postgresql://myuser:mypassword@localhost:5432/study_sessions"
 ```
 > **Tip**: Generate a secure key with `import secrets; print(secrets.token_hex(32))`
 
 ### **5️⃣ Set Up the Database**
 ```bash
+docker-compose up -d
+psql -h localhost -U myuser -d postgres -c "CREATE DATABASE study_session;"
 flask db init
 flask db migrate -m "Initial migration"
 flask db upgrade

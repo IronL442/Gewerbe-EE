@@ -71,7 +71,7 @@ const Session: React.FC = () => {
     }
 
     try {
-      const response = await axios.post("/sessions/log_session", {
+      const response = await axios.post("/sessions/session", {
         student_name: studentName,
         date,
         start_time: startTime,

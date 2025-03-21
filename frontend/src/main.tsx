@@ -10,7 +10,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/auth/login" element={<Login />} />
-        <Route path="/sessions/log_session" element={<Session />} />
+        <Route path="/sessions/session" element={<Session />} />
         {/* Add a dashboard route later */}
       </Routes>
     </BrowserRouter>
