@@ -50,3 +50,6 @@ package-lock.json
 .env
 config.json
 credentials.json
+
+# Signatures in development
+data
