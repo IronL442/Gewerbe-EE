@@ -39,10 +39,6 @@ nohup.out
 .DS_Store
 Thumbs.db
 
-# Docker files (if not using Docker)
-#docker-compose.yml
-Dockerfile
-
 # Node.js (if frontend included)
 node_modules/
 npm-debug.log
