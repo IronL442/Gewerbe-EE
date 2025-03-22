@@ -4,9 +4,9 @@
 This is a Flask-based web application for tracking private study sessions. The app allows users to log study sessions, including student name, date, time, session topic, and a digital signature. It replaces manual paper-based tracking and integrates with FastBill for automated invoice creation.
 
 ## 🚀 (Planned) Features
-- **Secure Login System** (Single user with `.env` credentials)
-- **Session Logging** (Student name, date, time, session topic, signature)
-- **PostgreSQL Database Integration**
+- **Secure Login System** (Single user with `.env` credentials) ✅
+- **Session Logging** (Student name, date, time, session topic, signature) ✅
+- **PostgreSQL Database Integration** ✅
 - **Flask-Login for Authentication**
 - **Signature Capture and Storage**
 - **FastBill Integration for Automated Invoicing**
@@ -31,12 +31,14 @@ SQLALCHEMY_DATABASE_URI="postgresql://myuser:mypassword@postgres:5432/study_sess
 ```
 > **Tip**: Generate a secure key with `import secrets; print(secrets.token_hex(32))`
 
-### **3️⃣ Setup Docker Container
+### **3️⃣ Setup and manage Docker Container**
 ```bash
 docker-compose up -d --build
 docker exec -it backend-container flask db init
 docker exec -it backend-container flask db migrate -m "Initial migration"
 docker exec -it backend-container flask db upgrade
+docker-compose stop # Stop all containers
+docker-compose start # Restart containers
 ```
 
 ---
@@ -64,11 +66,6 @@ export ADMIN_PASSWORD="yourpassword"
 export SECRET_KEY="your_random_secure_key"
 export SQLALCHEMY_DATABASE_URI="postgresql://youruser:yourpassword@yourserver:5432/study_sessions"
 ```
-To run the app with Gunicorn:
-```bash
-gunicorn -w 4 run:app
-```
-
 ---
 
 ## 🛠 Technologies Used
