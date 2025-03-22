@@ -4,5 +4,5 @@ Flask-Bcrypt==1.0.1
 Flask-SQLAlchemy==3.1.1
 python-dotenv==1.0.1
 psycopg2-binary==2.9.10
-Flask-Session==0.4.0
+Flask-Session==0.8.0
 flask-migrate
