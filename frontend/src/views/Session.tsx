@@ -154,6 +154,16 @@ const Session: React.FC = () => {
             required
           />
         </div>
+
+          <div className="mb-3">
+            <p className="text-muted">
+            By signing below, you agree to our{" "}
+              <a href="/privacy" className="text-primary text-decoration-underline" target="_blank" rel="noopener noreferrer">
+              Privacy Policy
+              </a>.
+            </p>
+          </div>
+
         <h2>Sign below</h2>
         <div className="mb-3">
           <canvas
