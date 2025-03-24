@@ -52,10 +52,17 @@ const Session: React.FC = () => {
     }
   };
 
+  const [privacyConsent, setPrivacyConsent] = useState(false);
+
     const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const canvas = canvasRef.current;
     if (!canvas) return;
+
+    if (!privacyConsent) {
+      setError("Bitte stimmen Sie der Datenschutzerklärung zu.");
+      return;
+    }
 
     const signatureData = canvas.toDataURL();
     if (
@@ -155,14 +162,22 @@ const Session: React.FC = () => {
           />
         </div>
 
-          <div className="mb-3">
-            <p className="text-muted">
-            By signing below, you agree to our{" "}
-              <a href="/privacy" className="text-primary text-decoration-underline" target="_blank" rel="noopener noreferrer">
-              Privacy Policy
-              </a>.
-            </p>
-          </div>
+        <div className="form-check mb-3">
+          <input
+            className="form-check-input"
+            type="checkbox"
+            id="privacyConsent"
+            checked={privacyConsent}
+            onChange={(e) => setPrivacyConsent(e.target.checked)}
+          />
+            <label className="form-check-label" htmlFor="privacyConsent">
+            Ich habe die{" "}
+              <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-primary text-decoration-underline">
+              Datenschutzerklärung
+              </a>
+              {" "}gelesen und stimme ihr zu.
+            </label>
+        </div>
 
         <h2>Sign below</h2>
         <div className="mb-3">
