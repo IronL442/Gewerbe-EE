@@ -4,12 +4,12 @@
 This is a Flask-based web application for tracking private study sessions. The app allows users to log study sessions, including student name, date, time, session topic, and a digital signature. It replaces manual paper-based tracking and integrates with FastBill for automated invoice creation.
 
 ## 🚀 (Planned) Features
-- **Secure Login System** (Single user with `.env` credentials) ✅
-- **Session Logging** (Student name, date, time, session topic, signature) ✅
-- **PostgreSQL Database Integration** ✅
-- **Flask-Login for Authentication**
-- **Signature Capture and Storage**
-- **FastBill Integration for Automated Invoicing**
+- [ ] **Secure Login System** (Single user with `.env` credentials)
+- [ ] **Session Logging** (Student name, date, time, session topic, signature)
+- [ ] **PostgreSQL Database Integration**
+- [ ] **Flask-Login for Authentication**
+- [ ] **Signature Capture and Storage**
+- [ ] **FastBill Integration for Automated Invoicing**
 
 ---
 
