@@ -1,4 +1,5 @@
 from models.database import database
+from sqlalchemy import LargeBinary
 
 
 class StudySession(database.Model):
@@ -8,4 +9,4 @@ class StudySession(database.Model):
     start_time = database.Column(database.String(5), nullable=False)
     end_time = database.Column(database.String(5), nullable=False)
     session_topic = database.Column(database.String(200), nullable=False)
-    signature_path = database.Column(database.String(255), nullable=False)
+    pdf_path = database.Column(database.String(255), nullable=False)
