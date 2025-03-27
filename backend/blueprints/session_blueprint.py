@@ -19,19 +19,17 @@ class SessionBlueprint:
 
     @login_required
     def log_session(self):
-        data = request.get_json()
-        if not data:
-            return jsonify({"error": "No JSON data provided"}), 400
+        data = request.form
+        files = request.files
 
         required_fields = [
             "student_name",
             "date",
             "start_time",
             "end_time",
-            "session_topic",
-            "signature_data",
+            "session_topic"
         ]
-        if not all(data.get(field) for field in required_fields):
+        if not all(data.get(field) or files.get(field) for field in required_fields):
             logger.warning("⚠️ Missing required fields: %s", data)
             return jsonify({"error": "All fields and signature are required"}), 400
 
@@ -39,7 +37,7 @@ class SessionBlueprint:
         logger.debug("🆔 User ID: %s", current_user.id)
 
         try:
-            new_session = self.session_service.create_study_session(data)
+            new_session = self.session_service.create_study_session(data, files)
             self.database_service.add_to_session(new_session)
             self.database_service.commit_session()
             logger.info("✅ Session committed successfully!")

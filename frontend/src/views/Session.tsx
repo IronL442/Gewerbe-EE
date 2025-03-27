@@ -2,6 +2,9 @@ import React, { useState, useRef, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+declare module "html2canvas";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 const Session: React.FC = () => {
   const [studentName, setStudentName] = useState("");
@@ -9,8 +12,10 @@ const Session: React.FC = () => {
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [sessionTopic, setSessionTopic] = useState("");
+  const [privacyConsent, setPrivacyConsent] = useState(false);
   const [error, setError] = useState("");
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const formRef = useRef<HTMLDivElement>(null);
   const [drawing, setDrawing] = useState(false);
   const navigate = useNavigate();
 
@@ -52,9 +57,7 @@ const Session: React.FC = () => {
     }
   };
 
-  const [privacyConsent, setPrivacyConsent] = useState(false);
-
-    const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -78,23 +81,42 @@ const Session: React.FC = () => {
     }
 
     try {
-      const response = await axios.post("/sessions/session", {
-        student_name: studentName,
-        date,
-        start_time: startTime,
-        end_time: endTime,
-        session_topic: sessionTopic,
-        signature_data: signatureData,
+      // 📸 Create a visual screenshot of the form
+      const screenshotCanvas = await html2canvas(formRef.current!);
+      const imageData = screenshotCanvas.toDataURL("image/png");
+
+      // 📄 Convert to PDF
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (screenshotCanvas.height * pdfWidth) / screenshotCanvas.width;
+      pdf.addImage(imageData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      const pdfBlob = pdf.output("blob");
+
+      // 📦 Package and send as FormData
+      const formData = new FormData();
+      formData.append("student_name", studentName);
+      formData.append("date", date);
+      formData.append("start_time", startTime);
+      formData.append("end_time", endTime);
+      formData.append("session_topic", sessionTopic);
+      formData.append("pdf", pdfBlob);
+
+      const response = await axios.post("/sessions/session", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
+
       if (response.status === 200) {
-        // Reset form fields to show an empty log session form
+        // Reset form
         setStudentName("");
         setDate("");
         setStartTime("");
         setEndTime("");
         setSessionTopic("");
         clearSignature();
-        setError(""); // Clear any previous errors
+        setPrivacyConsent(false);
+        setError("");
       }
     } catch (err: any) {
       setError(err.response?.data?.error || "Failed to log session");
@@ -103,106 +125,109 @@ const Session: React.FC = () => {
 
   return (
     <div className="container mt-5">
-      <h2>Log New Session</h2>
-      {error && <div className="alert alert-danger">{error}</div>}
-      <form onSubmit={handleSubmit}>
-        <div className="mb-3">
-          <label className="form-label">Student Name</label>
-          <input
-            type="text"
-            name="student_name"
-            className="form-control"
-            value={studentName}
-            onChange={(e) => setStudentName(e.target.value)}
-            required
-          />
-        </div>
-        <div className="mb-3">
-          <label className="form-label">Date</label>
-          <input
-            type="date"
-            name="date"
-            className="form-control"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            required
-          />
-        </div>
-        <div className="mb-3">
-          <label className="form-label">Start Time</label>
-          <input
-            type="time"
-            name="start_time"
-            className="form-control"
-            value={startTime}
-            onChange={(e) => setStartTime(e.target.value)}
-            required
-          />
-        </div>
-        <div className="mb-3">
-          <label className="form-label">End Time</label>
-          <input
-            type="time"
-            name="end_time"
-            className="form-control"
-            value={endTime}
-            onChange={(e) => setEndTime(e.target.value)}
-            required
-          />
-        </div>
-        <div className="mb-3">
-          <label className="form-label">Session Topic</label>
-          <input
-            type="text"
-            name="session_topic"
-            className="form-control"
-            value={sessionTopic}
-            onChange={(e) => setSessionTopic(e.target.value)}
-            required
-          />
-        </div>
+      <div ref={formRef}>
+        <h2>Log New Session</h2>
+        {error && <div className="alert alert-danger">{error}</div>}
+        <form onSubmit={handleSubmit}>
+          <div className="mb-3">
+            <label className="form-label">Student Name</label>
+            <input
+              type="text"
+              className="form-control"
+              value={studentName}
+              onChange={(e) => setStudentName(e.target.value)}
+              required
+            />
+          </div>
+          <div className="mb-3">
+            <label className="form-label">Date</label>
+            <input
+              type="date"
+              className="form-control"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              required
+            />
+          </div>
+          <div className="mb-3">
+            <label className="form-label">Start Time</label>
+            <input
+              type="time"
+              className="form-control"
+              value={startTime}
+              onChange={(e) => setStartTime(e.target.value)}
+              required
+            />
+          </div>
+          <div className="mb-3">
+            <label className="form-label">End Time</label>
+            <input
+              type="time"
+              className="form-control"
+              value={endTime}
+              onChange={(e) => setEndTime(e.target.value)}
+              required
+            />
+          </div>
+          <div className="mb-3">
+            <label className="form-label">Session Topic</label>
+            <input
+              type="text"
+              className="form-control"
+              value={sessionTopic}
+              onChange={(e) => setSessionTopic(e.target.value)}
+              required
+            />
+          </div>
 
-        <div className="form-check mb-3">
-          <input
-            className="form-check-input"
-            type="checkbox"
-            id="privacyConsent"
-            checked={privacyConsent}
-            onChange={(e) => setPrivacyConsent(e.target.checked)}
-          />
+          <div className="form-check mb-3">
+            <input
+              className="form-check-input"
+              type="checkbox"
+              id="privacyConsent"
+              checked={privacyConsent}
+              onChange={(e) => setPrivacyConsent(e.target.checked)}
+            />
             <label className="form-check-label" htmlFor="privacyConsent">
-            Ich habe die{" "}
-              <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-primary text-decoration-underline">
-              Datenschutzerklärung
-              </a>
-              {" "}gelesen und stimme ihr zu.
+              Ich habe die{" "}
+              <a
+                href="/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary text-decoration-underline"
+              >
+                Datenschutzerklärung
+              </a>{" "}
+              gelesen und stimme ihr zu.
             </label>
-        </div>
+          </div>
 
-        <h2>Sign below</h2>
-        <div className="mb-3">
-          <canvas
-            id="signature-pad"
-            className="signature-pad border"
-            width={400}
-            height={200}
-            ref={canvasRef}
-            onMouseDown={startDrawing}
-            onMouseUp={stopDrawing}
-            onMouseMove={draw}
-          />
-        </div>
-        <button type="submit" className="btn btn-success">
-          Save Session
-        </button>
-        <button
-          type="button"
-          className="btn btn-secondary ms-2"
-          onClick={clearSignature}
-        >
-          Cancel
-        </button>
-      </form>
+          <h2>Sign below</h2>
+          <div className="mb-3">
+            <canvas
+              id="signature-pad"
+              className="signature-pad border"
+              width={400}
+              height={200}
+              ref={canvasRef}
+              onMouseDown={startDrawing}
+              onMouseUp={stopDrawing}
+              onMouseMove={draw}
+            />
+          </div>
+
+          <button type="submit" className="btn btn-success">
+            Save Session
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary ms-2"
+            onClick={clearSignature}
+          >
+            Cancel
+          </button>
+        </form>
+      </div>
     </div>
   );
 };
