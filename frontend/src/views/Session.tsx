@@ -14,14 +14,13 @@ const Session: React.FC = () => {
   const [privacyConsent, setPrivacyConsent] = useState(false);
   const [hasSignature, setHasSignature] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [showErrors, setShowErrors] = useState(false); // ✅ Controls error visibility
+  const [showErrors, setShowErrors] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const formRef = useRef<HTMLDivElement>(null);
   const [drawing, setDrawing] = useState(false);
   const navigate = useNavigate();
 
-  // Initialize canvas settings
   useEffect(() => {
     const canvas = canvasRef.current;
     if (canvas) {
@@ -34,7 +33,6 @@ const Session: React.FC = () => {
     }
   }, []);
 
-  // Handle drawing on canvas
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
     setDrawing(true);
     setHasSignature(true); // Mark signature as present
@@ -69,24 +67,23 @@ const Session: React.FC = () => {
     
     const newErrors: { [key: string]: string } = {};
 
-    if (!studentName) newErrors["studentName"] = "Student name is required.";
-    if (!date) newErrors["date"] = "Date is required.";
-    if (!startTime) newErrors["startTime"] = "Start time is required.";
-    if (!endTime) newErrors["endTime"] = "End time is required.";
-    if (!sessionTopic) newErrors["sessionTopic"] = "Session topic is required.";
-    if (!privacyConsent) newErrors["privacyConsent"] = "You must agree to the privacy policy.";
-    if (!hasSignature) newErrors["signature"] = "Signature is required.";
+    if (!studentName) newErrors["studentName"] = "Der Name des Schülers ist erforderlich.";
+    if (!date) newErrors["date"] = "Das Datum ist erforderlich.";
+    if (!startTime) newErrors["startTime"] = "Die Startzeit ist erforderlich.";
+    if (!endTime) newErrors["endTime"] = "Die Endzeit ist erforderlich.";
+    if (!sessionTopic) newErrors["sessionTopic"] = "Das Thema der Stunde ist erforderlich.";
+    if (!privacyConsent) newErrors["privacyConsent"] = "Du musst der Datenschutzrichtlinie zustimmen.";
+    if (!hasSignature) newErrors["signature"] = "Unterschrift ist erforderlich.";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      setShowErrors(true); // ✅ Show errors
+      setShowErrors(true);
       return;
     }
 
     setErrors({});
-    setShowErrors(false); // ✅ Hide errors before taking the screenshot
+    setShowErrors(false);
 
-    // ✅ Wait for React to update before continuing
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     try {
@@ -130,16 +127,16 @@ const Session: React.FC = () => {
   return (
     <div className="container mt-5">
       <div ref={formRef}>
-        <h2>Log New Session</h2>
+        <h1>Neuen Termin eintragen</h1>
         {errors.general && <div className="alert alert-danger">{errors.general}</div>}
         
         <form onSubmit={handleSubmit} noValidate>
           {[
-            { label: "Student Name", value: studentName, setValue: setStudentName, id: "studentName" },
-            { label: "Date", value: date, setValue: setDate, id: "date", type: "date" },
-            { label: "Start Time", value: startTime, setValue: setStartTime, id: "startTime", type: "time" },
-            { label: "End Time", value: endTime, setValue: setEndTime, id: "endTime", type: "time" },
-            { label: "Session Topic", value: sessionTopic, setValue: setSessionTopic, id: "sessionTopic" }
+            { label: "Schüler", value: studentName, setValue: setStudentName, id: "studentName" },
+            { label: "Datum", value: date, setValue: setDate, id: "date", type: "date" },
+            { label: "Start Zeit", value: startTime, setValue: setStartTime, id: "startTime", type: "time" },
+            { label: "End Zeit", value: endTime, setValue: setEndTime, id: "endTime", type: "time" },
+            { label: "Thema der Stunde", value: sessionTopic, setValue: setSessionTopic, id: "sessionTopic" }
           ].map(({ label, value, setValue, id, type = "text" }) => (
             <div className="mb-3" key={id}>
               <label className="form-label">{label}</label>
@@ -164,13 +161,14 @@ const Session: React.FC = () => {
               onChange={(e) => setPrivacyConsent(e.target.checked)}
             />
             <label className="form-check-label" htmlFor="privacyConsent">
-              I have read and agree to the{" "}
-              <a href="/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>.
+              Ich habe die{" "}
+              <a href="/privacy" target="_blank" rel="noopener noreferrer">Datenschutzbestimmungen</a>
+              gelesen und stimmen ihnen zu.
             </label>
             {showErrors && errors.privacyConsent && <div className="text-danger">{errors.privacyConsent}</div>}
           </div>
 
-          <h2>Sign below</h2>
+          <h2>Hier unterschreiben</h2>
           <canvas
             className={`signature-pad border ${showErrors && errors.signature ? "border-danger" : ""}`}
             width={400}
@@ -182,8 +180,8 @@ const Session: React.FC = () => {
           />
           {showErrors && errors.signature && <div className="text-danger mt-2">{errors.signature}</div>}
 
-          <button type="submit" className="btn btn-success">Save Session</button>
-          <button type="button" className="btn btn-secondary ms-2" onClick={clearSignature}>Clear Signature</button>
+          <button type="submit" className="btn btn-success">Termin speichern</button>
+          <button type="button" className="btn btn-secondary ms-2" onClick={clearSignature}>Unterschrift löschen</button>
         </form>
       </div>
     </div>
