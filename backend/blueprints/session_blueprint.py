@@ -27,7 +27,8 @@ class SessionBlueprint:
             "date",
             "start_time",
             "end_time",
-            "session_topic"
+            "session_topic",
+            "signature_present",
         ]
         if not all(data.get(field) or files.get(field) for field in required_fields):
             logger.warning("⚠️ Missing required fields: %s", data)
