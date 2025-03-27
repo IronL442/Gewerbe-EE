@@ -14,7 +14,8 @@ const Session: React.FC = () => {
   const [privacyConsent, setPrivacyConsent] = useState(false);
   const [hasSignature, setHasSignature] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  
+  const [showErrors, setShowErrors] = useState(false); // ✅ Controls error visibility
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const formRef = useRef<HTMLDivElement>(null);
   const [drawing, setDrawing] = useState(false);
@@ -78,8 +79,15 @@ const Session: React.FC = () => {
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      setShowErrors(true); // ✅ Show errors
       return;
     }
+
+    setErrors({});
+    setShowErrors(false); // ✅ Hide errors before taking the screenshot
+
+    // ✅ Wait for React to update before continuing
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
     try {
       const screenshotCanvas = await html2canvas(formRef.current!);
@@ -137,13 +145,13 @@ const Session: React.FC = () => {
               <label className="form-label">{label}</label>
               <input
                 type={type}
-                className={`form-control ${errors[id] ? "is-invalid" : ""}`}
+                className={`form-control ${showErrors && errors[id] ? "is-invalid" : ""}`}
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
                 aria-invalid={!!errors[id]}
                 aria-describedby={`${id}Error`}
               />
-              {errors[id] && <div id={`${id}Error`} className="invalid-feedback">{errors[id]}</div>}
+              {showErrors && errors[id] && <div id={`${id}Error`} className="invalid-feedback">{errors[id]}</div>}
             </div>
           ))}
 
@@ -159,12 +167,12 @@ const Session: React.FC = () => {
               I have read and agree to the{" "}
               <a href="/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>.
             </label>
-            {errors.privacyConsent && <div className="text-danger">{errors.privacyConsent}</div>}
+            {showErrors && errors.privacyConsent && <div className="text-danger">{errors.privacyConsent}</div>}
           </div>
 
           <h2>Sign below</h2>
           <canvas
-            className={`signature-pad border ${errors.signature ? "border-danger" : ""}`}
+            className={`signature-pad border ${showErrors && errors.signature ? "border-danger" : ""}`}
             width={400}
             height={200}
             ref={canvasRef}
@@ -172,7 +180,7 @@ const Session: React.FC = () => {
             onMouseUp={stopDrawing}
             onMouseMove={draw}
           />
-          {errors.signature && <div className="text-danger mt-2">{errors.signature}</div>}
+          {showErrors && errors.signature && <div className="text-danger mt-2">{errors.signature}</div>}
 
           <button type="submit" className="btn btn-success">Save Session</button>
           <button type="button" className="btn btn-secondary ms-2" onClick={clearSignature}>Clear Signature</button>
