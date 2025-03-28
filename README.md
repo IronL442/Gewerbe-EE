@@ -58,26 +58,6 @@ docker-compose start # Restart containers
 
 ---
 
-## 🚀 Deployment
-For production, use a WSGI server like **Gunicorn** and set environment variables manually on your server.
-```bash
-export ADMIN_USERNAME="admin"
-export ADMIN_PASSWORD="yourpassword"
-export SECRET_KEY="your_random_secure_key"
-export SQLALCHEMY_DATABASE_URI="postgresql://youruser:yourpassword@yourserver:5432/study_sessions"
-```
----
-
-## 🛠 Technologies Used
-- **Flask** (Web framework)
-- **Flask-Login** (User authentication)
-- **Flask-Bcrypt** (Password hashing)
-- **Flask-SQLAlchemy** (Database ORM)
-- **PostgreSQL** (Database)
-- **JavaScript Canvas** (Signature capture)
-
----
-
 ## 🤝 Contributing
 Feel free to submit issues or pull requests to improve this project!
 
