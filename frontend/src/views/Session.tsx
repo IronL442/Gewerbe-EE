@@ -94,7 +94,15 @@ const Session: React.FC = () => {
     pdf.text(`Unterschrift: `, 10, 90);
     
     // Timestamp to prevent tampering
-    const timestamp = new Date().toISOString().replace("T", " ").split(".")[0] + " UTC";
+    const timestamp = new Intl.DateTimeFormat("de-DE", {
+      timeZone: "Europe/Berlin",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    }).format(new Date());
     pdf.text(`Erstellt am: ${timestamp}`, 10, 130);
   
     // Get signature from canvas and add to PDF
