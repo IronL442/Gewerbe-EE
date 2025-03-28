@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
 const Session: React.FC = () => {
@@ -76,16 +75,36 @@ const Session: React.FC = () => {
   };
 
   const createPDF = async () => {
-    if (!formRef.current) throw new Error("Form reference is not available");
-
-    const screenshotCanvas = await html2canvas(formRef.current);
-    const imageData = screenshotCanvas.toDataURL("image/png");
-
     const pdf = new jsPDF("p", "mm", "a4");
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (screenshotCanvas.height * pdfWidth) / screenshotCanvas.width;
-    pdf.addImage(imageData, "PNG", 0, 0, pdfWidth, pdfHeight);
-
+  
+    // Set font
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(16);
+    pdf.text("Sitzungsprotokoll", 10, 20);
+  
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(12);
+  
+    // Add session details
+    pdf.text(`Schüler: ${studentName}`, 10, 40);
+    pdf.text(`Datum: ${date}`, 10, 50);
+    pdf.text(`Startzeit: ${startTime}`, 10, 60);
+    pdf.text(`Endzeit: ${endTime}`, 10, 70);
+    pdf.text(`Thema: ${sessionTopic}`, 10, 80);
+    pdf.text(`Unterschrift: `, 10, 90);
+    
+    // Timestamp to prevent tampering
+    const timestamp = new Date().toISOString().replace("T", " ").split(".")[0] + " UTC";
+    pdf.text(`Erstellt am: ${timestamp}`, 10, 130);
+  
+    // Get signature from canvas and add to PDF
+    if (canvasRef.current) {
+      const signatureDataUrl = canvasRef.current.toDataURL("image/png");
+      pdf.addImage(signatureDataUrl, "PNG", 35, 85, 50, 25); // Adjust size & position as needed
+    } else {
+      pdf.text("Unterschrift: Nicht vorhanden", 10, 110);
+    }
+  
     return pdf.output("blob");
   };
 
