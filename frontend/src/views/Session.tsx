@@ -61,10 +61,7 @@ const Session: React.FC = () => {
     setHasSignature(false); // Reset signature presence
   };
 
-  // Handle form submission
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const validateFields = () => {
     const newErrors: { [key: string]: string } = {};
 
     if (!studentName) newErrors["studentName"] = "Der Name des Schülers ist erforderlich.";
@@ -75,6 +72,27 @@ const Session: React.FC = () => {
     if (!privacyConsent) newErrors["privacyConsent"] = "Du musst der Datenschutzrichtlinie zustimmen.";
     if (!hasSignature) newErrors["signature"] = "Unterschrift ist erforderlich.";
 
+    return newErrors;
+  };
+
+  const createPDF = async () => {
+    if (!formRef.current) throw new Error("Form reference is not available");
+
+    const screenshotCanvas = await html2canvas(formRef.current);
+    const imageData = screenshotCanvas.toDataURL("image/png");
+
+    const pdf = new jsPDF("p", "mm", "a4");
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (screenshotCanvas.height * pdfWidth) / screenshotCanvas.width;
+    pdf.addImage(imageData, "PNG", 0, 0, pdfWidth, pdfHeight);
+
+    return pdf.output("blob");
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const newErrors = validateFields();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       setShowErrors(true);
@@ -84,17 +102,11 @@ const Session: React.FC = () => {
     setErrors({});
     setShowErrors(false);
 
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    // Prevent error message from showing up on PDF
+    await new Promise((resolve) => setTimeout(resolve,0));
 
     try {
-      const screenshotCanvas = await html2canvas(formRef.current!);
-      const imageData = screenshotCanvas.toDataURL("image/png");
-
-      const pdf = new jsPDF("p", "mm", "a4");
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (screenshotCanvas.height * pdfWidth) / screenshotCanvas.width;
-      pdf.addImage(imageData, "PNG", 0, 0, pdfWidth, pdfHeight);
-      const pdfBlob = pdf.output("blob");
+      const pdfBlob = await createPDF();
 
       const formData = new FormData();
       formData.append("student_name", studentName);
