@@ -201,8 +201,7 @@ const Session: React.FC = () => {
             />
             <label className="form-check-label" htmlFor="privacyConsent">
               Ich habe die{" "}
-              <a href="/privacy" target="_blank" rel="noopener noreferrer">Datenschutzbestimmungen</a>
-              gelesen und stimme ihnen zu.
+              <a href="/privacy" target="_blank" rel="noopener noreferrer">Datenschutzbestimmungen</a> gelesen und stimme ihnen zu.
             </label>
             {showErrors && errors.privacyConsent && <div className="text-danger">{errors.privacyConsent}</div>}
           </div>
