@@ -18,6 +18,7 @@ class Student(database.Model):
 
 class StudySession(database.Model):
     id = database.Column(database.Integer, primary_key=True)
+    student_id = database.Column(database.Integer, database.ForeignKey('student.id'), nullable=False)
     student_name = database.Column(database.String(100), nullable=False)
     date = database.Column(database.String(10), nullable=False)
     start_time = database.Column(database.String(5), nullable=False)
