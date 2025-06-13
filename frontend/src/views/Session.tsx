@@ -1,48 +1,84 @@
-import React, { useState, useRef, useEffect } from "react";
-import "bootstrap/dist/css/bootstrap.min.css";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import jsPDF from "jspdf";
+import React, { useState, useRef, useEffect } from 'react';
+import Select, { SingleValue } from 'react-select';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import jsPDF from 'jspdf';
+
+interface Student {
+  id: number;
+  name: string;
+}
+
+interface Option {
+  value: number;
+  label: string;
+}
 
 const Session: React.FC = () => {
-  const [studentName, setStudentName] = useState("");
-  const [date, setDate] = useState("");
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
-  const [sessionTopic, setSessionTopic] = useState("");
-  const [privacyConsent, setPrivacyConsent] = useState(false);
-  const [hasSignature, setHasSignature] = useState(false);
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [showErrors, setShowErrors] = useState(false);
-
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const formRef = useRef<HTMLDivElement>(null);
-  const [drawing, setDrawing] = useState(false);
   const navigate = useNavigate();
 
+  // Student select state
+  const [selectedStudent, setSelectedStudent] = useState<Option | null>(null);
+  const [studentOptions, setStudentOptions] = useState<Option[]>([]);
+
+  // Form fields
+  const [date, setDate] = useState<string>('');
+  const [startTime, setStartTime] = useState<string>('');
+  const [endTime, setEndTime] = useState<string>('');
+  const [sessionTopic, setSessionTopic] = useState<string>('');
+  const [privacyConsent, setPrivacyConsent] = useState<boolean>(false);
+
+  // Signature canvas
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [drawing, setDrawing] = useState<boolean>(false);
+  const [hasSignature, setHasSignature] = useState<boolean>(false);
+
+  // Validation
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showErrors, setShowErrors] = useState<boolean>(false);
+
+  // Fetch students on mount
+  useEffect(() => {
+    axios.get<Student[]>('/api/students')
+      .then((res) => {
+        const opts = res.data.map((s) => ({ value: s.id, label: s.name }));
+        setStudentOptions(opts);
+      })
+      .catch((err) => console.error('Failed to load students', err));
+  }, []);
+
+  // Initialize canvas context
   useEffect(() => {
     const canvas = canvasRef.current;
     if (canvas) {
-      const ctx = canvas.getContext("2d");
+      const ctx = canvas.getContext('2d');
       if (ctx) {
         ctx.lineWidth = 2;
-        ctx.lineCap = "round";
-        ctx.strokeStyle = "#000";
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = '#000';
       }
     }
   }, []);
 
+  // Drawing handlers
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
     setDrawing(true);
-    setHasSignature(true); // Mark signature as present
+    setHasSignature(true);
     draw(e);
   };
 
-  const stopDrawing = () => setDrawing(false);
+  const stopDrawing = () => {
+    setDrawing(false);
+    if (canvasRef.current) {
+      const ctx = canvasRef.current.getContext('2d');
+      ctx?.beginPath();
+    }
+  };
 
   const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!drawing || !canvasRef.current) return;
-    const ctx = canvasRef.current.getContext("2d");
+    const ctx = canvasRef.current.getContext('2d');
     if (ctx) {
       ctx.lineTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
       ctx.stroke();
@@ -54,174 +90,188 @@ const Session: React.FC = () => {
   const clearSignature = () => {
     const canvas = canvasRef.current;
     if (canvas) {
-      const ctx = canvas.getContext("2d");
+      const ctx = canvas.getContext('2d');
       ctx?.clearRect(0, 0, canvas.width, canvas.height);
     }
-    setHasSignature(false); // Reset signature presence
+    setHasSignature(false);
   };
 
+  // Validate fields
   const validateFields = () => {
-    const newErrors: { [key: string]: string } = {};
-
-    if (!studentName) newErrors["studentName"] = "Der Name des Schülers ist erforderlich.";
-    if (!date) newErrors["date"] = "Das Datum ist erforderlich.";
-    if (!startTime) newErrors["startTime"] = "Die Startzeit ist erforderlich.";
-    if (!endTime) newErrors["endTime"] = "Die Endzeit ist erforderlich.";
-    if (!sessionTopic) newErrors["sessionTopic"] = "Das Thema der Stunde ist erforderlich.";
-    if (!privacyConsent) newErrors["privacyConsent"] = "Du musst der Datenschutzrichtlinie zustimmen.";
-    if (!hasSignature) newErrors["signature"] = "Unterschrift ist erforderlich.";
-
+    const newErrors: Record<string, string> = {};
+    if (!selectedStudent) newErrors['student'] = 'Der Name des Schülers ist erforderlich.';
+    if (!date) newErrors['date'] = 'Das Datum ist erforderlich.';
+    if (!startTime) newErrors['startTime'] = 'Die Startzeit ist erforderlich.';
+    if (!endTime) newErrors['endTime'] = 'Die Endzeit ist erforderlich.';
+    if (!sessionTopic) newErrors['sessionTopic'] = 'Das Thema der Stunde ist erforderlich.';
+    if (!privacyConsent) newErrors['privacyConsent'] = 'Du musst der Datenschutzrichtlinie zustimmen.';
+    if (!hasSignature) newErrors['signature'] = 'Unterschrift ist erforderlich.';
     return newErrors;
   };
 
-  const createPDF = async () => {
-    const pdf = new jsPDF("p", "mm", "a4");
-  
-    // Set font
-    pdf.setFont("helvetica", "bold");
+  // Create PDF
+  const createPDF = async (): Promise<Blob> => {
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(16);
-    pdf.text("Sitzungsprotokoll", 10, 20);
-  
-    pdf.setFont("helvetica", "normal");
+    pdf.text('Sitzungsprotokoll', 10, 20);
+
+    pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(12);
-  
-    // Add session details
-    pdf.text(`Schüler: ${studentName}`, 10, 40);
+    pdf.text(`Schüler: ${selectedStudent?.label}`, 10, 40);
     pdf.text(`Datum: ${date}`, 10, 50);
     pdf.text(`Startzeit: ${startTime}`, 10, 60);
     pdf.text(`Endzeit: ${endTime}`, 10, 70);
     pdf.text(`Thema: ${sessionTopic}`, 10, 80);
-    pdf.text(`Unterschrift: `, 10, 90);
-    
-    // Timestamp to prevent tampering
-    const timestamp = new Intl.DateTimeFormat("de-DE", {
-      timeZone: "Europe/Berlin",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
+
+    // Timestamp
+    const timestamp = new Intl.DateTimeFormat('de-DE', {
+      timeZone: 'Europe/Berlin',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
     }).format(new Date());
     pdf.text(`Erstellt am: ${timestamp}`, 10, 130);
-  
-    // Get signature from canvas and add to PDF
+
+    // Signature
     if (canvasRef.current) {
-      const signatureDataUrl = canvasRef.current.toDataURL("image/png");
-      pdf.addImage(signatureDataUrl, "PNG", 35, 85, 50, 25); // Adjust size & position as needed
+      const img = canvasRef.current.toDataURL('image/png');
+      pdf.addImage(img, 'PNG', 35, 85, 50, 25);
     } else {
-      pdf.text("Unterschrift: Nicht vorhanden", 10, 110);
+      pdf.text('Unterschrift: Nicht vorhanden', 10, 110);
     }
-  
-    return pdf.output("blob");
+
+    return pdf.output('blob');
   };
 
+  // Handle form submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     const newErrors = validateFields();
-    if (Object.keys(newErrors).length > 0) {
+    if (Object.keys(newErrors).length) {
       setErrors(newErrors);
       setShowErrors(true);
       return;
     }
-
     setErrors({});
     setShowErrors(false);
 
-    // Prevent error message from showing up on PDF
-    await new Promise((resolve) => setTimeout(resolve,0));
-
     try {
       const pdfBlob = await createPDF();
-
       const formData = new FormData();
-      formData.append("student_name", studentName);
-      formData.append("date", date);
-      formData.append("start_time", startTime);
-      formData.append("end_time", endTime);
-      formData.append("session_topic", sessionTopic);
-      formData.append("pdf", pdfBlob);
-      formData.append("signature_present", hasSignature ? "true" : "false");
+      formData.append('student_id', String(selectedStudent!.value));
+      formData.append('student_name', selectedStudent!.label);
+      formData.append('date', date);
+      formData.append('start_time', startTime);
+      formData.append('end_time', endTime);
+      formData.append('session_topic', sessionTopic);
+      formData.append('pdf', pdfBlob);
+      formData.append('signature_present', hasSignature ? 'true' : 'false');
 
-      const response = await axios.post("/sessions/session", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+      const response = await axios.post('/sessions/session', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
 
       if (response.status === 200) {
-        setStudentName("");
-        setDate("");
-        setStartTime("");
-        setEndTime("");
-        setSessionTopic("");
+        // reset form
+        setSelectedStudent(null);
+        setDate('');
+        setStartTime('');
+        setEndTime('');
+        setSessionTopic('');
         clearSignature();
         setPrivacyConsent(false);
-        setErrors({});
       }
     } catch (err: any) {
-      setErrors({ general: err.response?.data?.error || "Failed to log session" });
+      setErrors({ general: err.response?.data?.error || 'Failed to log session' });
+      setShowErrors(true);
     }
   };
 
   return (
     <div className="container mt-5">
-      <div ref={formRef}>
-        <h1>Neuen Termin eintragen</h1>
-        {errors.general && <div className="alert alert-danger">{errors.general}</div>}
-        
-        <form onSubmit={handleSubmit} noValidate>
-          {[
-            { label: "Schüler", value: studentName, setValue: setStudentName, id: "studentName" },
-            { label: "Datum", value: date, setValue: setDate, id: "date", type: "date" },
-            { label: "Start Zeit", value: startTime, setValue: setStartTime, id: "startTime", type: "time" },
-            { label: "End Zeit", value: endTime, setValue: setEndTime, id: "endTime", type: "time" },
-            { label: "Thema der Stunde", value: sessionTopic, setValue: setSessionTopic, id: "sessionTopic" }
-          ].map(({ label, value, setValue, id, type = "text" }) => (
-            <div className="mb-3" key={id}>
-              <label className="form-label">{label}</label>
-              <input
-                type={type}
-                className={`form-control ${showErrors && errors[id] ? "is-invalid" : ""}`}
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-                aria-invalid={!!errors[id]}
-                aria-describedby={`${id}Error`}
-              />
-              {showErrors && errors[id] && <div id={`${id}Error`} className="invalid-feedback">{errors[id]}</div>}
-            </div>
-          ))}
+      <h1>Neuen Termin eintragen</h1>
+      {errors.general && <div className="alert alert-danger">{errors.general}</div>}
 
-          <div className="form-check mb-3">
-            <input
-              className="form-check-input"
-              type="checkbox"
-              id="privacyConsent"
-              checked={privacyConsent}
-              onChange={(e) => setPrivacyConsent(e.target.checked)}
-            />
-            <label className="form-check-label" htmlFor="privacyConsent">
-              Ich habe die{" "}
-              <a href="/privacy" target="_blank" rel="noopener noreferrer">Datenschutzbestimmungen</a> gelesen und stimme ihnen zu.
-            </label>
-            {showErrors && errors.privacyConsent && <div className="text-danger">{errors.privacyConsent}</div>}
-          </div>
-
-          <h2>Hier unterschreiben</h2>
-          <canvas
-            className={`signature-pad border ${showErrors && errors.signature ? "border-danger" : ""}`}
-            width={400}
-            height={200}
-            ref={canvasRef}
-            onMouseDown={startDrawing}
-            onMouseUp={stopDrawing}
-            onMouseMove={draw}
+      <form onSubmit={handleSubmit} noValidate>
+        {/* Student select */}
+        <div className="mb-3">
+          <label htmlFor="studentSelect" className="form-label">Schüler</label>
+          <Select
+            inputId="studentSelect"
+            options={studentOptions}
+            value={selectedStudent}
+            onChange={(opt: SingleValue<Option>) => setSelectedStudent(opt)}
+            placeholder="Name eingeben..."
+            classNamePrefix={showErrors && errors.student ? 'is-invalid' : undefined}
           />
-          {showErrors && errors.signature && <div className="text-danger mt-2">{errors.signature}</div>}
+          {showErrors && errors.student && (
+            <div className="invalid-feedback d-block">{errors.student}</div>
+          )}
+        </div>
 
-          <button type="submit" className="btn btn-success">Termin speichern</button>
-          <button type="button" className="btn btn-secondary ms-2" onClick={clearSignature}>Unterschrift löschen</button>
-        </form>
-      </div>
+        {/* Date, start/end time, topic */}
+        {[
+          { label: 'Datum', value: date, setter: setDate, id: 'date', type: 'date' },
+          { label: 'Startzeit', value: startTime, setter: setStartTime, id: 'startTime', type: 'time' },
+          { label: 'Endzeit', value: endTime, setter: setEndTime, id: 'endTime', type: 'time' },
+          { label: 'Thema der Stunde', value: sessionTopic, setter: setSessionTopic, id: 'sessionTopic' }
+        ].map(({ label, value, setter, id, type }) => (
+          <div className="mb-3" key={id}>
+            <label htmlFor={id} className="form-label">{label}</label>
+            <input
+              id={id}
+              type={type}
+              className={`form-control ${showErrors && errors[id] ? 'is-invalid' : ''}`}
+              value={value}
+              onChange={(e) => setter(e.target.value)}
+            />
+            {showErrors && errors[id] && (
+              <div className="invalid-feedback">{errors[id]}</div>
+            )}
+          </div>
+        ))}
+
+        {/* Privacy consent */}
+        <div className="form-check mb-3">
+          <input
+            id="privacyConsent"
+            type="checkbox"
+            className="form-check-input"
+            checked={privacyConsent}
+            onChange={(e) => setPrivacyConsent(e.target.checked)}
+          />
+          <label htmlFor="privacyConsent" className="form-check-label">
+            Ich habe die <a href="/privacy" target="_blank" rel="noopener noreferrer">Datenschutzbestimmungen</a> gelesen und stimme ihnen zu.
+          </label>
+          {showErrors && errors.privacyConsent && (
+            <div className="text-danger">{errors.privacyConsent}</div>
+          )}
+        </div>
+
+        {/* Signature pad */}
+        <h2>Hier unterschreiben</h2>
+        <canvas
+          ref={canvasRef}
+          width={400}
+          height={200}
+          className={`signature-pad border ${showErrors && errors.signature ? 'border-danger' : ''}`}
+          onMouseDown={startDrawing}
+          onMouseUp={stopDrawing}
+          onMouseLeave={stopDrawing}
+          onMouseMove={draw}
+        />
+        {showErrors && errors.signature && (
+          <div className="text-danger mt-2">{errors.signature}</div>
+        )}
+
+        {/* Buttons */}
+        <button type="submit" className="btn btn-success">Termin speichern</button>
+        <button type="button" className="btn btn-secondary ms-2" onClick={clearSignature}>Unterschrift löschen</button>
+      </form>
     </div>
   );
 };
