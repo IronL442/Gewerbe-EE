@@ -4,8 +4,7 @@ from sqlalchemy import LargeBinary
 
 class Customer(database.Model):
     id = database.Column(database.Integer, primary_key=True)
-    name = database.Column(database.String(100), nullable=False)
-    email = database.Column(database.String(100), nullable=False)
+    name = database.Column(database.String(255), nullable=False)
     fastbill_customer_id = database.Column(database.String(50), nullable=False)  # from FastBill
     students = database.relationship("Student", back_populates="parent")
 
