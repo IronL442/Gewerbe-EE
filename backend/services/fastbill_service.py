@@ -2,8 +2,10 @@ import os
 import requests
 from dotenv import load_dotenv
 import base64
+# --- Sync FastBill Customers to Local Database ---
+from backend.models.study_session import Customer
+from backend.models.database import database as db 
 
-# Load environment variables
 load_dotenv()
 
 class FastbillService:
@@ -51,3 +53,30 @@ class FastbillService:
             print(f"Error connecting to FastBill API: {e}")
             return None
         
+    def sync_fastbill_customers(self, verbose=True):
+        customers = self.get_customers()
+
+        if customers is None:
+            if verbose:
+                print("Failed to retrieve customers.")
+            return False
+        
+        inserted = 0
+        for c in customers:
+            # Avoid duplicates
+            existing = Customer.query.filter_by(fastbill_customer_id=c["id"]).first()
+            if existing:
+                continue
+
+            new_customer = Customer(
+                name=c["name"],
+                fastbill_customer_id=c["id"]
+            )
+            db.session.add(new_customer)
+            inserted += 1
+
+        db.session.commit()
+
+        if verbose:
+            print(f'Synced {inserted} new FastBill customers.')
+        return
