@@ -14,8 +14,12 @@ class SessionService:
         return pdf_path
 
     def create_study_session(self, data, files):
+        student_id = data.get("student_id")
+        if not student_id:
+            raise ValueError("student_id is required")
+        
         return StudySession(
-            student_name=data.get("student_name", "").strip(),
+            student_id=int(student_id),
             date=data.get("date", "").strip(),
             start_time=data.get("start_time", "").strip(),
             end_time=data.get("end_time", "").strip(),
