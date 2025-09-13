@@ -39,7 +39,7 @@ class AuthBlueprint:
             print(f"🔍 Is user authenticated? {current_user.is_authenticated}")
             return (
                 jsonify(
-                    {"message": "Login successful", "redirect": "/sessions/session"}
+                    {"message": "Login successful", "redirect": "/session"}
                 ),
                 200,
             )
