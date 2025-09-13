@@ -34,11 +34,27 @@ SQLALCHEMY_DATABASE_URI="postgresql://myuser:mypassword@postgres:5432/study_sess
 ### **3️⃣ Setup and manage Docker Container**
 ```bash
 docker-compose up -d --build
+
+# Initialize database migrations
 docker exec -it backend-container flask db init
-docker exec -it backend-container flask db migrate -m "Initial migration"
+docker exec -it backend-container flask db migrate -m "Create all tables"
 docker exec -it backend-container flask db upgrade
+
+# Container management
 docker-compose stop # Stop all containers
 docker-compose start # Restart containers
+```
+
+### **🔧 Troubleshooting Database Issues**
+If you encounter migration errors:
+```bash
+# Reset migrations completely
+docker exec -it backend-container rm -rf /app/migrations
+docker exec -it backend-container flask db init
+
+# Create fresh migration
+docker exec -it backend-container flask db migrate -m "Create all tables"
+docker exec -it backend-container flask db upgrade
 ```
 
 ---
