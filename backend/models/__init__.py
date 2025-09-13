@@ -1,4 +1,3 @@
-# This file makes the models directory a Python package
 # Import all models to ensure they're registered with SQLAlchemy
 
 from .database import database, migrate
