@@ -16,6 +16,10 @@ class SessionBlueprint:
         self.blueprint.add_url_rule(
             "/session", view_func=self.log_session, methods=["POST"]
         )
+        # Fetch Students for Dropdown
+        self.blueprint.add_url_rule(
+            "/students", view_func=self.get_students, methods=["GET"]
+        )
 
     @login_required
     def log_session(self):
@@ -23,7 +27,7 @@ class SessionBlueprint:
         files = request.files
 
         required_fields = [
-            "student_name",
+            "student_id",
             "date",
             "start_time",
             "end_time",
@@ -46,6 +50,16 @@ class SessionBlueprint:
         except Exception as e:
             logger.error("❌ Error committing session to database: %s", e)
             return jsonify({"error": "Error committing session to database"}), 500
+
+    @login_required
+    def get_students(self):
+        """Get all students for the dropdown in Session.tsx"""
+        try:
+            students_data = self.database_service.get_students_for_dropdown()
+            return jsonify({"students": students_data}), 200
+        except Exception as e:
+            logger.error(f"❌ Error in get_students endpoint: {e}")
+            return jsonify({"error": "Error fetching students"}), 500
 
 
 session_blueprint = SessionBlueprint()
