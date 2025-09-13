@@ -13,7 +13,7 @@ const Login: React.FC = () => {
     e.preventDefault();
     try {
       const response = await axios.post(
-        "/auth/login",
+        "/api/auth/login",
         { username, password },
         { headers: { "Content-Type": "application/json" } }
       );
