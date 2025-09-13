@@ -7,8 +7,7 @@ This is a Flask-based web application for tracking private study sessions. The a
 - [x] **Secure Login System** (Single user with `.env` credentials)
 - [x] **Session Logging** (Student name, date, time, session topic, signature)
 - [x] **PostgreSQL Database Integration**
-- [ ] **Flask-Login for Authentication**
-- [ ] **Signature Capture and Storage**
+- [x] **Signature Capture and Storage**
 - [ ] **FastBill Integration for Automated Invoicing**
 
 ---
