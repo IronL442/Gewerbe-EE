@@ -7,7 +7,10 @@ import jsPDF from 'jspdf';
 
 interface Student {
   id: number;
-  name: string;
+  first_name: string;
+  last_name: string;
+  full_name: string;
+  customer_id: number;
 }
 
 interface Option {
@@ -19,8 +22,8 @@ const Session: React.FC = () => {
   const navigate = useNavigate();
 
   // Student select state
-  const [selectedStudent, setSelectedStudent] = useState<Option | null>(null);
-  const [studentOptions, setStudentOptions] = useState<Option[]>([]);
+  const [students, setStudents] = useState<Option[]>([]);
+  const [selectedStudent, setSelectedStudent] = useState<Option | null>(null);  // ✅ Fixed type
 
   // Form fields
   const [date, setDate] = useState<string>('');
@@ -40,12 +43,25 @@ const Session: React.FC = () => {
 
   // Fetch students on mount
   useEffect(() => {
-    axios.get<Student[]>('/api/students')
-      .then((res) => {
-        const opts = res.data.map((s) => ({ value: s.id, label: s.name }));
-        setStudentOptions(opts);
-      })
-      .catch((err) => console.error('Failed to load students', err));
+    const fetchStudents = async () => {
+      try {
+        const res = await axios.get<{students: Student[]}>('/api/students');
+        console.log('Students response:', res.data); // Debug log
+        
+        // Handle the new API response format
+        const opts = res.data.students.map((s) => ({ 
+          value: s.id, 
+          label: s.full_name || `${s.first_name} ${s.last_name}` 
+        }));
+        
+        setStudents(opts);
+        console.log('Student options:', opts); // Debug log
+      } catch (error) {
+        console.error('Error fetching students:', error);
+      }
+    };
+
+    fetchStudents();
   }, []);
 
   // Initialize canvas context
@@ -118,7 +134,7 @@ const Session: React.FC = () => {
 
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(12);
-    pdf.text(`Schüler: ${selectedStudent?.label}`, 10, 40);
+    pdf.text(`Schüler: ${selectedStudent?.label || 'N/A'}`, 10, 40);  // ✅ Fixed
     pdf.text(`Datum: ${date}`, 10, 50);
     pdf.text(`Startzeit: ${startTime}`, 10, 60);
     pdf.text(`Endzeit: ${endTime}`, 10, 70);
@@ -160,10 +176,10 @@ const Session: React.FC = () => {
     setShowErrors(false);
 
     try {
+      const selectedStudentName = selectedStudent?.label || '';
       const pdfBlob = await createPDF();
       const formData = new FormData();
-      formData.append('student_id', String(selectedStudent!.value));
-      formData.append('student_name', selectedStudent!.label);
+      formData.append('student_id', selectedStudent?.value.toString() || '');
       formData.append('date', date);
       formData.append('start_time', startTime);
       formData.append('end_time', endTime);
@@ -171,7 +187,7 @@ const Session: React.FC = () => {
       formData.append('pdf', pdfBlob);
       formData.append('signature_present', hasSignature ? 'true' : 'false');
 
-      const response = await axios.post('/sessions/session', formData, {
+      const response = await axios.post('/api/session', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
@@ -200,18 +216,41 @@ const Session: React.FC = () => {
         {/* Student select */}
         <div className="mb-3">
           <label htmlFor="studentSelect" className="form-label">Schüler</label>
+          <div className='d-flex mb-2'>
           <Select
             inputId="studentSelect"
-            options={studentOptions}
+            options={students}
             value={selectedStudent}
             onChange={(opt: SingleValue<Option>) => setSelectedStudent(opt)}
             placeholder="Name eingeben..."
             classNamePrefix={showErrors && errors.student ? 'is-invalid' : undefined}
+            className="flex-grow-1"
           />
-          {showErrors && errors.student && (
+          <button
+            type="button"
+            className="btn btn-outline-primary"
+            onClick={() => navigate('/add-student-customer')}
+          >
+            Neuen Schüler/Kunde hinzufügen
+          </button>
+        </div>
+        {showErrors && errors.student && (
             <div className="invalid-feedback d-block">{errors.student}</div>
           )}
         </div>
+
+        {/* Debug info - remove after testing */}
+        {students.length === 0 && (
+          <div className="alert alert-warning">
+            No students found. Check console for errors.
+          </div>
+        )}
+        
+        {students.length > 0 && (
+          <div className="alert alert-info">
+            Found {students.length} student(s): {students.map(s => s.label).join(', ')}
+          </div>
+        )}
 
         {/* Date, start/end time, topic */}
         {[
@@ -224,7 +263,7 @@ const Session: React.FC = () => {
             <label htmlFor={id} className="form-label">{label}</label>
             <input
               id={id}
-              type={type}
+              type={type || 'text'}  // ✅ Added fallback
               className={`form-control ${showErrors && errors[id] ? 'is-invalid' : ''}`}
               value={value}
               onChange={(e) => setter(e.target.value)}
