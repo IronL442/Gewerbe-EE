@@ -8,6 +8,7 @@ import os
 
 from blueprints.auth_blueprint import auth_blueprint
 from blueprints.session_blueprint import session_blueprint
+from blueprints.student_blueprint import student_blueprint
 
 app = Flask(__name__)
 app.config["SESSION_PERMANENT"] = False
@@ -40,8 +41,10 @@ def load_user(user_id):
 if not os.path.exists("./data/signatures"):
     os.makedirs("./data/signatures")
 
-app.register_blueprint(auth_blueprint.blueprint, url_prefix="/auth")
-app.register_blueprint(session_blueprint.blueprint, url_prefix="/sessions")
+app.register_blueprint(auth_blueprint.blueprint, url_prefix="/api/auth")
+app.register_blueprint(session_blueprint.blueprint, url_prefix="/api")
+app.register_blueprint(student_blueprint.blueprint, url_prefix="/api")
+
 
 
 @app.route("/")
@@ -51,5 +54,10 @@ def home():
 
 if __name__ == "__main__":
     with app.app_context():
+        # Import all models to register them with SQLAlchemy
+        from models import customer, student, study_session, user
+        
+        # Create all tables
         database.create_all()
+        
     app.run(debug=True, host="0.0.0.0")
