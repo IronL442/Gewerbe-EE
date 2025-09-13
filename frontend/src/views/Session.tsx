@@ -239,19 +239,6 @@ const Session: React.FC = () => {
           )}
         </div>
 
-        {/* Debug info - remove after testing */}
-        {students.length === 0 && (
-          <div className="alert alert-warning">
-            No students found. Check console for errors.
-          </div>
-        )}
-        
-        {students.length > 0 && (
-          <div className="alert alert-info">
-            Found {students.length} student(s): {students.map(s => s.label).join(', ')}
-          </div>
-        )}
-
         {/* Date, start/end time, topic */}
         {[
           { label: 'Datum', value: date, setter: setDate, id: 'date', type: 'date' },
