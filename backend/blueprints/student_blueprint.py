@@ -95,7 +95,7 @@ class StudentBlueprint:
             
         except ValueError as e:
             logger.warning(f"⚠️ Validation error: {str(e)}")
-            return jsonify({'error': str(e)}), 400
+            return jsonify({'error': 'Invalid input.'}), 400
         except Exception as e:
             logger.error(f"❌ Error in create_student endpoint: {str(e)}")
             return jsonify({'error': 'Failed to create student'}), 500
