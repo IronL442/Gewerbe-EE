@@ -41,6 +41,15 @@ const Session: React.FC = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showErrors, setShowErrors] = useState<boolean>(false);
 
+  // Format date helper function
+  const formatDateForPDF = (dateString: string): string => {
+    if (!dateString) return 'N/A';
+    
+    // dateString is in format "yyyy-mm-dd" from HTML date input
+    const [year, month, day] = dateString.split('-');
+    return `${day}.${month}.${year}`;
+  };
+
   // Fetch students on mount
   useEffect(() => {
     const fetchStudents = async () => {
@@ -134,8 +143,8 @@ const Session: React.FC = () => {
 
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(12);
-    pdf.text(`Schüler: ${selectedStudent?.label || 'N/A'}`, 10, 40);  // ✅ Fixed
-    pdf.text(`Datum: ${date}`, 10, 50);
+    pdf.text(`Schüler: ${selectedStudent?.label || 'N/A'}`, 10, 40);
+    pdf.text(`Datum: ${formatDateForPDF(date)}`, 10, 50);
     pdf.text(`Startzeit: ${startTime}`, 10, 60);
     pdf.text(`Endzeit: ${endTime}`, 10, 70);
     pdf.text(`Thema: ${sessionTopic}`, 10, 80);
