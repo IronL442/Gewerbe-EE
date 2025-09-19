@@ -23,7 +23,7 @@ services:
     environment:
       - SQLALCHEMY_DATABASE_URI=postgresql://myuser:mypassword@postgres:5432/study_sessions
       - ADMIN_USERNAME=admin
-      - ADMIN_PASSWORD=$2b$12$KIfQbktCuX0B/69VdBTmhug1ju79Dbh.5EKTKG.OXzJVbrgsQzBim
+      - ADMIN_PASSWORD_HASH=$$2b$$12$$KIfQbktCuX0B/69VdBTmhug1ju79Dbh.5EKTKG.OXzJVbrgsQzBim
       - SECRET_KEY=your_random_secure_key
     ports:
       - "5000:5000"

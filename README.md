@@ -24,7 +24,7 @@ cd study-session-tracker
 Create a `.env` file in the `/backend` directory and add:
 ```
 ADMIN_USERNAME="admin"
-ADMIN_PASSWORD="yourpassword"
+ADMIN_PASSWORD_HASH="bcrypt-hash-of-yourpassword"
 SECRET_KEY="your_random_secure_key"
 SQLALCHEMY_DATABASE_URI="postgresql://myuser:mypassword@postgres:5432/study_sessions"
 ```
@@ -80,4 +80,3 @@ Feel free to submit issues or pull requests to improve this project!
 
 ## 📄 License
 This project is licensed under the MIT License.
-
