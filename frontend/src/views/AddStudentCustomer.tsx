@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { api } from '../lib/api';
 
 interface Customer {
   id: number;
@@ -50,11 +51,8 @@ const AddStudentCustomer: React.FC = () => {
 
   const fetchCustomers = async () => {
     try {
-      const response = await fetch('/api/customers');
-      if (response.ok) {
-        const data = await response.json();
-        setCustomers(data);
-      }
+      const { data } = await api.get<Customer[]>('/api/customers');
+      setCustomers(data);
     } catch (error) {
       console.error('Error fetching customers:', error);
     }
@@ -68,37 +66,21 @@ const AddStudentCustomer: React.FC = () => {
     console.log('Submitting customer form:', customerForm);
 
     try {
-      const response = await fetch('/api/customers', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(customerForm),
+      const { data: newCustomer } = await api.post<Customer>('/api/customers', customerForm);
+      console.log('Customer created:', newCustomer);
+      setCustomers([...customers, newCustomer]);
+      setStudentForm({ ...studentForm, customer_id: newCustomer.id });
+      setShowNewCustomerForm(false);
+      setCustomerForm({
+        first_name: '',
+        last_name: '',
+        email: '',
+        phone: '',
+        address: '',
       });
-
-      console.log('Response status:', response.status);
-
-      if (response.ok) {
-        const newCustomer = await response.json();
-        console.log('Customer created:', newCustomer);
-        setCustomers([...customers, newCustomer]);
-        setStudentForm({ ...studentForm, customer_id: newCustomer.id });
-        setShowNewCustomerForm(false);
-        setCustomerForm({
-          first_name: '',
-          last_name: '',
-          email: '',
-          phone: '',
-          address: '',
-        });
-      } else {
-        const errorData = await response.json();
-        console.error('Error response:', errorData);
-        setError(errorData.error || 'Failed to create customer');
-      }
-    } catch (error) {
-        console.error('Network error:', error);
-      setError('Network error occurred');
+    } catch (error: any) {
+      console.error('Error creating customer:', error);
+      setError(error.response?.data?.error || 'Failed to create customer');
     } finally {
       setLoading(false);
     }
@@ -116,23 +98,11 @@ const AddStudentCustomer: React.FC = () => {
     }
 
     try {
-      const response = await fetch('/api/students', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(studentForm),
-      });
-
-      if (response.ok) {
-        const newStudent = await response.json();
-        navigate('/session');
-      } else {
-        const errorData = await response.json();
-        setError(errorData.error || 'Failed to create student');
-      }
-    } catch (error) {
-      setError('Network error occurred');
+      await api.post('/api/students', studentForm);
+      navigate('/session');
+    } catch (error: any) {
+      console.error('Error creating student:', error);
+      setError(error.response?.data?.error || 'Failed to create student');
     } finally {
       setLoading(false);
     }

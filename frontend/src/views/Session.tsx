@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Select, { SingleValue } from 'react-select';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import jsPDF from 'jspdf';
+import { api } from '../lib/api';
 
 interface Student {
   id: number;
@@ -54,7 +54,7 @@ const Session: React.FC = () => {
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        const res = await axios.get<{students: Student[]}>('/api/students');
+        const res = await api.get<{students: Student[]}>('/api/students');
         console.log('Students response:', res.data); // Debug log
         
         // Handle the new API response format
@@ -185,7 +185,6 @@ const Session: React.FC = () => {
     setShowErrors(false);
 
     try {
-      const selectedStudentName = selectedStudent?.label || '';
       const pdfBlob = await createPDF();
       const formData = new FormData();
       formData.append('student_id', selectedStudent?.value.toString() || '');
@@ -196,9 +195,7 @@ const Session: React.FC = () => {
       formData.append('pdf', pdfBlob);
       formData.append('signature_present', hasSignature ? 'true' : 'false');
 
-      const response = await axios.post('/api/session', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const response = await api.post('/api/session', formData);
 
       if (response.status === 200) {
         // reset form

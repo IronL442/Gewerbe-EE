@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
-import axios from "axios";
+import { api } from "../lib/api";
 import { useNavigate } from "react-router-dom";
 
 const Login: React.FC = () => {
@@ -12,11 +12,7 @@ const Login: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await axios.post(
-        "/api/auth/login",
-        { username, password },
-        { headers: { "Content-Type": "application/json" } }
-      );
+      const response = await api.post("/api/auth/login", { username, password });
       if (response.status === 200) {
         navigate(response.data.redirect);
       }
