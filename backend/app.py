@@ -30,18 +30,30 @@ app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=8)
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("SQLALCHEMY_DATABASE_URI")
 app.config.setdefault("SQLALCHEMY_TRACK_MODIFICATIONS", False)
 
+
+def env_flag(name: str, default: str = "true") -> bool:
+    raw = os.getenv(name)
+    if raw is None:
+        raw = default
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+
+USE_SECURE_COOKIES = env_flag("USE_SECURE_COOKIES", "true")
+FORCE_HTTPS = env_flag("FORCE_HTTPS", "true")
+COOKIE_SAMESITE = "None" if USE_SECURE_COOKIES else "Lax"
+
 # Fail fast if SECRET_KEY is missing
 if not app.config["SECRET_KEY"]:
     raise RuntimeError("SECRET_KEY must be set")
 
 # Secure cookie settings (session + remember cookie)
 app.config.update(
-    SESSION_COOKIE_SECURE=True,
+    SESSION_COOKIE_SECURE=USE_SECURE_COOKIES,
     SESSION_COOKIE_HTTPONLY=True,
-    SESSION_COOKIE_SAMESITE="None",
-    REMEMBER_COOKIE_SECURE=True,
+    SESSION_COOKIE_SAMESITE=COOKIE_SAMESITE,
+    REMEMBER_COOKIE_SECURE=USE_SECURE_COOKIES,
     REMEMBER_COOKIE_HTTPONLY=True,
-    REMEMBER_COOKIE_SAMESITE="None",
+    REMEMBER_COOKIE_SAMESITE=COOKIE_SAMESITE,
     MAX_CONTENT_LENGTH=1 * 1024 * 1024,  # 1MB request size cap
 )
 
@@ -53,7 +65,7 @@ _csp = {
     "script-src": "'self'",
     "connect-src": ("'self' " + os.getenv("CSP_CONNECT_SRC", "")).strip(),
 }
-Talisman(app, force_https=True, content_security_policy=_csp)
+Talisman(app, force_https=FORCE_HTTPS, content_security_policy=_csp)
 
 # CSRF protection (for JSON: use X-CSRFToken header; see /api/csrf below)
 CSRFProtect(app)
@@ -113,7 +125,13 @@ def get_csrf():
     token = generate_csrf()
     # Expose a JS-readable token (standard double-submit pattern)
     resp = jsonify({"csrfToken": token})
-    resp.set_cookie("XSRF-TOKEN", token, secure=True, httponly=False, samesite="None")
+    resp.set_cookie(
+        "XSRF-TOKEN",
+        token,
+        secure=USE_SECURE_COOKIES,
+        httponly=False,
+        samesite=COOKIE_SAMESITE,
+    )
     return resp, 200
 
 # Health checks

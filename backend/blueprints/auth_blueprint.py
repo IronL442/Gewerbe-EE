@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, request, jsonify, session, current_app
 from flask_login import login_user, current_user
 from utils.encryption import bcrypt
 from models.user import StaticUser
@@ -27,17 +27,38 @@ class AuthBlueprint:
         if not username or not password:
             return jsonify({"error": "Username and password are required"}), 400
 
-        if (
-            self.username
-            and self.password_hash
-            and username == self.username
-            and bcrypt.check_password_hash(self.password_hash, password)
-        ):
-            user = StaticUser()
-            login_user(user, remember=True)
-            session.permanent = True
-            return jsonify({"message": "Login successful", "redirect": "/session"}), 200
+        if self.username and self.password_hash:
+            user_match = username == self.username
+            password_match = False
+            if user_match:
+                try:
+                    password_match = bcrypt.check_password_hash(self.password_hash, password)
+                except ValueError as exc:
+                    current_app.logger.error(
+                        "Password hash verification failed",
+                        extra={"username": username},
+                        exc_info=exc,
+                    )
 
+            current_app.logger.info(
+                "Login attempt",
+                extra={
+                    "username": username,
+                    "user_match": user_match,
+                    "password_match": password_match,
+                },
+            )
+
+            if user_match and password_match:
+                user = StaticUser()
+                login_user(user, remember=True)
+                session.permanent = True
+                return jsonify({"message": "Login successful", "redirect": "/session"}), 200
+
+        current_app.logger.warning(
+            "Login failed",
+            extra={"username": username, "reason": "invalid_credentials"},
+        )
         return jsonify({"error": "Invalid username or password"}), 401
 
 

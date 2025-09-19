@@ -12,13 +12,14 @@ logger = logging.getLogger(__name__)
 
 class SessionService:
     def __init__(self):
-        # Fallback local directories for development or if R2 is not available
+        # Always keep a local fallback directory in case R2 is unavailable
+        self.pdf_dir = "data/completed_forms"
+        os.makedirs(self.pdf_dir, exist_ok=True)
+
         if r2_storage.is_available():
             logger.info("Using R2 storage for file uploads")
         else:
-            logger.info("Using local storage for file uploads")
-            self.pdf_dir = "data/completed_forms"
-            os.makedirs(self.pdf_dir, exist_ok=True)
+            logger.warning("R2 storage unavailable; using local storage fallback")
 
     def generate_pdf_filename(self, student_id, date):
         """
@@ -67,7 +68,7 @@ class SessionService:
         # Read PDF data
         pdf_file.seek(0)  # Reset file pointer to beginning
         pdf_data = pdf_file.read()
-        
+
         if r2_storage.is_available():
             # Upload to R2
             file_key = f"completed_forms/{pdf_filename}"
@@ -84,7 +85,7 @@ class SessionService:
                     )
                     if file_url:
                         logger.info(f"PDF uploaded to R2: {file_key}")
-                        return True
+                        return file_key
                     else:
                         # If upload failed, try with incremented name
                         name_without_ext = original_filename.replace('.pdf', '')
@@ -117,10 +118,10 @@ class SessionService:
             with open(pdf_path, 'wb') as f:
                 f.write(pdf_data)
             logger.info(f"PDF saved locally: {pdf_path}")
-            return True
+            return pdf_path
         except Exception as e:
             logger.error(f"Failed to save PDF locally: {e}")
-            return False
+            return None
 
     def get_pdf_url(self, student_id, date, expiration=3600):
         """
@@ -209,11 +210,11 @@ class SessionService:
         date = data.get("date", "").strip()
         
         # Save PDF (we don't need to store the path anymore)
-        pdf_saved = self.save_pdf(files["pdf"], int(student_id), date)
-        
-        if not pdf_saved:
+        pdf_path = self.save_pdf(files["pdf"], int(student_id), date)
+
+        if not pdf_path:
             raise Exception("Failed to save PDF")
-        
+
         return StudySession(
             student_id=int(student_id),
             date=date,
