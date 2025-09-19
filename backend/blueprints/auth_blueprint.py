@@ -14,7 +14,7 @@ class AuthBlueprint:
         self.__setup_routes()
 
     def __setup_routes(self):
-        self.blueprint.add_url_rule("login", view_func=self.login, methods=["POST"])
+        self.blueprint.add_url_rule("/login", view_func=self.login, methods=["POST"])
 
     def login(self):
         data = request.get_json()
