@@ -12,25 +12,39 @@ const CSRF_ENDPOINT = "/api/csrf";
 let mintingPromise: Promise<void> | null = null;
 let csrfToken: string | null = null;
 
+function readCookieToken(): string | null {
+  return (
+    document.cookie
+      .split('; ')
+      .find(part => part.startsWith('XSRF-TOKEN='))
+      ?.split('=')[1] ?? null
+  );
+}
+
 async function mintCsrfToken() {
   if (!mintingPromise) {
-    mintingPromise = fetch(`${BASE}${CSRF_ENDPOINT}`, {
-      credentials: "include",
-    })
-      .then(async (res) => {
+    mintingPromise = (async () => {
+      try {
+        const res = await fetch(`${BASE}${CSRF_ENDPOINT}`, {
+          credentials: "include",
+        });
         if (!res.ok) {
           throw new Error(`Failed to mint CSRF token: ${res.status}`);
         }
         const data = await res.json().catch(() => ({}));
         const tokenFromResponse = typeof data?.csrfToken === "string" ? data.csrfToken : null;
-        if (!tokenFromResponse) {
+        csrfToken = tokenFromResponse ?? readCookieToken();
+        if (!csrfToken) {
           throw new Error("CSRF token missing from response");
         }
-        csrfToken = tokenFromResponse;
-      })
-      .finally(() => {
+      } catch (error) {
+        csrfToken = null;
+        console.error("Failed to mint CSRF token", error);
+        throw error;
+      } finally {
         mintingPromise = null;
-      });
+      }
+    })();
   }
   return mintingPromise;
 }
@@ -38,6 +52,9 @@ async function mintCsrfToken() {
 export async function ensureCsrfToken() {
   if (!csrfToken) {
     await mintCsrfToken();
+  }
+  if (!csrfToken) {
+    csrfToken = readCookieToken();
   }
   if (!csrfToken) {
     throw new Error("Unable to acquire CSRF token");
