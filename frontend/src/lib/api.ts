@@ -8,23 +8,26 @@ export const api = axios.create({
   withCredentials: true,           // send cookies
 });
 
-// Read CSRF cookie set by /api/csrf
-function getCookie(name: string) {
-  return document.cookie
-    .split("; ")
-    .find(r => r.startsWith(name + "="))
-    ?.split("=")[1] ?? "";
-}
-
 const CSRF_ENDPOINT = "/api/csrf";
 let mintingPromise: Promise<void> | null = null;
+let csrfToken: string | null = null;
 
 async function mintCsrfToken() {
   if (!mintingPromise) {
     mintingPromise = fetch(`${BASE}${CSRF_ENDPOINT}`, {
       credentials: "include",
     })
-      .then(() => undefined)
+      .then(async (res) => {
+        if (!res.ok) {
+          throw new Error(`Failed to mint CSRF token: ${res.status}`);
+        }
+        const data = await res.json().catch(() => ({}));
+        const tokenFromResponse = typeof data?.csrfToken === "string" ? data.csrfToken : null;
+        if (!tokenFromResponse) {
+          throw new Error("CSRF token missing from response");
+        }
+        csrfToken = tokenFromResponse;
+      })
       .finally(() => {
         mintingPromise = null;
       });
@@ -33,26 +36,28 @@ async function mintCsrfToken() {
 }
 
 export async function ensureCsrfToken() {
-  if (!getCookie("XSRF-TOKEN")) {
+  if (!csrfToken) {
     await mintCsrfToken();
   }
+  if (!csrfToken) {
+    throw new Error("Unable to acquire CSRF token");
+  }
+  return csrfToken;
 }
 
 // Attach CSRF token for state-changing requests
 api.interceptors.request.use(async (config) => {
   const method = (config.method || "get").toUpperCase();
   if (["POST","PUT","PATCH","DELETE"].includes(method)) {
-    const token = getCookie("XSRF-TOKEN");
-    if (!token) {
-      // fetch token once if missing/expired
+    if (!csrfToken) {
       await mintCsrfToken();
     }
-    const fresh = getCookie("XSRF-TOKEN");
-    if (fresh) {
-      const headers = AxiosHeaders.from(config.headers);
-      headers.set("X-CSRFToken", fresh);
-      config.headers = headers;
+    if (!csrfToken) {
+      throw new Error("Missing CSRF token");
     }
+    const headers = AxiosHeaders.from(config.headers);
+    headers.set("X-CSRFToken", csrfToken);
+    config.headers = headers;
   }
   return config;
 });

@@ -41,6 +41,7 @@ def env_flag(name: str, default: str = "true") -> bool:
 USE_SECURE_COOKIES = env_flag("USE_SECURE_COOKIES", "true")
 FORCE_HTTPS = env_flag("FORCE_HTTPS", "true")
 COOKIE_SAMESITE = "None" if USE_SECURE_COOKIES else "Lax"
+COOKIE_HTTPONLY = env_flag("XSRF_COOKIE_HTTPONLY", "true")
 
 # Fail fast if SECRET_KEY is missing
 if not app.config["SECRET_KEY"]:
@@ -129,7 +130,7 @@ def get_csrf():
         "XSRF-TOKEN",
         token,
         secure=USE_SECURE_COOKIES,
-        httponly=False,
+        httponly=COOKIE_HTTPONLY,
         samesite=COOKIE_SAMESITE,
     )
     return resp, 200
