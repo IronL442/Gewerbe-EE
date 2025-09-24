@@ -25,7 +25,7 @@ services:
     environment:
       - SQLALCHEMY_DATABASE_URI=postgresql://myuser:mypassword@postgres:5432/study_sessions
       - ADMIN_USERNAME=Eva
-      - ADMIN_PASSWORD_HASH=$$2b$$12$$WLu78wfLU7B1AYAWYTRE1e8wTX1qJjO0Zyl4PMcNme/cRZ7zI3drS
+      - ADMIN_PASSWORD_HASH=$$2b$12$4mB5mj7CSEbXNzmXqsbtwuLmkqgGv6jV0UPGtzZbeYuSJEOe47IpW
       - SECRET_KEY=your_random_secure_key
       - FORCE_HTTPS=false
       - USE_SECURE_COOKIES=false
