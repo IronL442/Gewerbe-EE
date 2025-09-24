@@ -27,8 +27,8 @@ services:
       - ADMIN_USERNAME=Eva
       - ADMIN_PASSWORD_HASH=$$2b$12$4mB5mj7CSEbXNzmXqsbtwuLmkqgGv6jV0UPGtzZbeYuSJEOe47IpW
       - SECRET_KEY=your_random_secure_key
-      - FORCE_HTTPS=false
-      - USE_SECURE_COOKIES=false
+      - FORCE_HTTPS=true
+      - USE_SECURE_COOKIES=true
     ports:
       - "5000:8000"
     volumes:
