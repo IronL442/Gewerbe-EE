@@ -20,8 +20,8 @@ sessions/
 *.db
 *.sqlite
 
-# Migration files
-migrations/
+# Migration caches
+migrations/**/__pycache__/
 
 # IDE and editor settings
 .vscode/
