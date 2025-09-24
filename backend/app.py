@@ -27,7 +27,10 @@ if app.config.get("SESSION_TYPE") == "redis":
     app.config["SESSION_REDIS"] = redis.from_url(os.getenv("REDIS_URL"))
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=8)
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("SQLALCHEMY_DATABASE_URI")
+database_uri = os.getenv("SQLALCHEMY_DATABASE_URI") or os.getenv("DATABASE_URL")
+if not database_uri:
+    raise RuntimeError("SQLALCHEMY_DATABASE_URI or DATABASE_URL must be set")
+app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
 app.config.setdefault("SQLALCHEMY_TRACK_MODIFICATIONS", False)
 
 
