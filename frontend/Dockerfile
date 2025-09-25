@@ -25,7 +25,7 @@ COPY <<'CADDYFILE' /app/Caddyfile
   }
   @api path /api/*
   handle @api {
-    reverse_proxy http://{env.BACKEND_HOST}
+    reverse_proxy {$BACKEND_UPSTREAM:backend:8000}
   }
 
   handle {
