@@ -28,5 +28,4 @@ exec gunicorn "app:app" \
     --workers "${WORKERS:-2}" \
     --threads "${THREADS:-8}" \
     --preload \
-    --bind "0.0.0.0:${PORT:-8000}" \
     --bind "[::]:${PORT:-8000}"

@@ -21,7 +21,7 @@ ENV FLASK_APP=app.py
 RUN chmod +x entrypoint.sh
 
 # Optional: Dockerfile-level healthcheck (Railway can also use service healthchecks)
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s CMD ["python", "-c", "import os, socket; socket.create_connection(('127.0.0.1', int(os.environ.get('PORT', '8000'))), timeout=2).close()"]
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s CMD ["python", "-c", "import os, socket; port=int(os.environ.get('PORT','8000'));\nfor host in ('::1','127.0.0.1'):\n    try:\n        socket.create_connection((host, port), timeout=2).close();\n        break\n    except OSError:\n        pass\nelse:\n    raise SystemExit(1)"]
 
 # Railway sets $PORT. Entrypoint script handles migrations then starts Gunicorn.
 CMD ["./entrypoint.sh"]
