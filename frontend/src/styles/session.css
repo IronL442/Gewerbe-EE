@@ -1,0 +1,20 @@
+.session-form {
+  max-width: 720px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.session-form .form-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.session-form .form-check-input {
+  margin-top: 0.35rem;
+  flex-shrink: 0;
+}
+
+.session-form .consent-label {
+  margin: 0;
+}

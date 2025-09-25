@@ -4,6 +4,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { useNavigate } from 'react-router-dom';
 import jsPDF from 'jspdf';
 import { api } from '../lib/api';
+import '../styles/session.css';
 
 interface Student {
   id: number;
@@ -214,7 +215,7 @@ const Session: React.FC = () => {
   };
 
   return (
-    <div className="container mt-5">
+    <div className="container mt-5 session-form">
       <h1>Neuen Termin eintragen</h1>
       {errors.general && <div className="alert alert-danger">{errors.general}</div>}
 
@@ -268,15 +269,15 @@ const Session: React.FC = () => {
         ))}
 
         {/* Privacy consent */}
-        <div className="form-check mb-3 text-start">
+        <div className="form-check mb-3">
           <input
             id="privacyConsent"
             type="checkbox"
-            className="form-check-input me-2"
+            className="form-check-input"
             checked={privacyConsent}
             onChange={(e) => setPrivacyConsent(e.target.checked)}
           />
-          <label htmlFor="privacyConsent" className="form-check-label">
+          <label htmlFor="privacyConsent" className="form-check-label consent-label">
             Ich habe die <a href="/privacy" target="_blank" rel="noopener noreferrer">Datenschutzbestimmungen</a> gelesen und stimme ihnen zu.
           </label>
           {showErrors && errors.privacyConsent && (
