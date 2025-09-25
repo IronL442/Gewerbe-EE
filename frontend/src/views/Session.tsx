@@ -268,15 +268,15 @@ const Session: React.FC = () => {
         ))}
 
         {/* Privacy consent */}
-        <div className="form-check mb-3">
+        <div className="form-check mb-3 d-flex justify-content-center align-items-center">
           <input
             id="privacyConsent"
             type="checkbox"
-            className="form-check-input"
+            className="form-check-input position-static me-2"
             checked={privacyConsent}
             onChange={(e) => setPrivacyConsent(e.target.checked)}
           />
-          <label htmlFor="privacyConsent" className="form-check-label">
+          <label htmlFor="privacyConsent" className="form-check-label mb-0">
             Ich habe die <a href="/privacy" target="_blank" rel="noopener noreferrer">Datenschutzbestimmungen</a> gelesen und stimme ihnen zu.
           </label>
           {showErrors && errors.privacyConsent && (
