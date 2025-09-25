@@ -20,12 +20,12 @@ COPY <<'CADDYFILE' /app/Caddyfile
 }
 :{$PORT:3000} {
   header {
-    Content-Security-Policy "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' https://{env.BACKEND_HOST}"
+    Content-Security-Policy "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' {env.BACKEND_HOST}"
     Referrer-Policy "strict-origin-when-cross-origin"
   }
   @api path /api/*
   handle @api {
-    reverse_proxy backend:8000
+    reverse_proxy {env.BACKEND_HOST}
   }
 
   handle {
