@@ -2,9 +2,9 @@
 # Build stage
 FROM node:20-alpine AS build
 WORKDIR /app
-COPY frontend/package*.json ./
+COPY package*.json ./
 RUN npm ci
-COPY frontend/ ./
+COPY . ./
 RUN npm run build
 
 # Serve stage (Caddy)
