@@ -37,6 +37,7 @@ const Session: React.FC = () => {
   // Signature canvas
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [drawing, setDrawing] = useState<boolean>(false);
+  const activePointerIdRef = useRef<number | null>(null);
   const [hasSignature, setHasSignature] = useState<boolean>(false);
 
   // Validation
@@ -93,29 +94,76 @@ const Session: React.FC = () => {
   }, []);
 
   // Drawing handlers
-  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const startDrawing = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) {
+      return;
+    }
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    if (typeof canvas.setPointerCapture === 'function') {
+      try {
+        canvas.setPointerCapture(e.pointerId);
+      } catch (error) {
+        // Some browsers may not support pointer capture for canvas; ignore.
+      }
+    }
+
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    e.preventDefault();
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+
     setDrawing(true);
     setHasSignature(true);
-    draw(e);
+    activePointerIdRef.current = e.pointerId;
   };
 
-  const stopDrawing = () => {
+  const stopDrawing = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (!canvasRef.current || e.pointerId !== activePointerIdRef.current) {
+      return;
+    }
+
+    if (typeof canvasRef.current.releasePointerCapture === 'function') {
+      try {
+        canvasRef.current.releasePointerCapture(e.pointerId);
+      } catch (error) {
+        // Ignore inability to release capture; drawing already stopped.
+      }
+    }
+
+    e.preventDefault();
     setDrawing(false);
-    if (canvasRef.current) {
-      const ctx = canvasRef.current.getContext('2d');
-      ctx?.beginPath();
-    }
+    activePointerIdRef.current = null;
+
+    const ctx = canvasRef.current.getContext('2d');
+    ctx?.beginPath();
   };
 
-  const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!drawing || !canvasRef.current) return;
-    const ctx = canvasRef.current.getContext('2d');
-    if (ctx) {
-      ctx.lineTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
+  const draw = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (!drawing || !canvasRef.current || e.pointerId !== activePointerIdRef.current) {
+      return;
     }
+
+    const ctx = canvasRef.current.getContext('2d');
+    if (!ctx) return;
+
+    e.preventDefault();
+    const rect = canvasRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x, y);
   };
 
   const clearSignature = () => {
@@ -303,10 +351,11 @@ const Session: React.FC = () => {
           width={400}
           height={200}
           className={`signature-pad border ${showErrors && errors.signature ? 'border-danger' : ''}`}
-          onMouseDown={startDrawing}
-          onMouseUp={stopDrawing}
-          onMouseLeave={stopDrawing}
-          onMouseMove={draw}
+          onPointerDown={startDrawing}
+          onPointerUp={stopDrawing}
+          onPointerLeave={stopDrawing}
+          onPointerCancel={stopDrawing}
+          onPointerMove={draw}
         />
         {showErrors && errors.signature && (
           <div className="text-danger mt-2">{errors.signature}</div>

@@ -67,3 +67,8 @@
 .session-consent-checkbox:checked + span::after {
   content: "\2713";
 }
+
+.signature-pad {
+  touch-action: none;
+  -ms-touch-action: none;
+}
