@@ -1,6 +1,42 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { api } from "../lib/api";
 
 const PrivacyPolicy: React.FC = () => {
+  const navigate = useNavigate();
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const verifyAuth = async () => {
+      try {
+        await api.get("/api/auth/me");
+      } catch (error) {
+        if (axios.isAxiosError(error) && error.response?.status === 401) {
+          navigate("/login");
+          return;
+        }
+        console.error("Failed to verify auth for privacy page", error);
+      } finally {
+        if (isMounted) {
+          setCheckingAuth(false);
+        }
+      }
+    };
+
+    verifyAuth();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [navigate]);
+
+  if (checkingAuth) {
+    return null;
+  }
+
   return (
     <div className="p-6 max-w-4xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">Datenschutzerklärung</h1>

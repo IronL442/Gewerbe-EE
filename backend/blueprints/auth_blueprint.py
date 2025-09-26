@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, session, current_app
-from flask_login import login_user, current_user
+from flask_login import login_user, current_user, login_required
 from utils.encryption import bcrypt
 from models.user import StaticUser
 import os
@@ -15,6 +15,7 @@ class AuthBlueprint:
 
     def __setup_routes(self):
         self.blueprint.add_url_rule("/login", view_func=self.login, methods=["POST"])
+        self.blueprint.add_url_rule("/me", view_func=self.get_current_user, methods=["GET"])
 
     def login(self):
         data = request.get_json()
@@ -60,6 +61,13 @@ class AuthBlueprint:
             extra={"username": username, "reason": "invalid_credentials"},
         )
         return jsonify({"error": "Invalid username or password"}), 401
+
+    @login_required
+    def get_current_user(self):
+        return jsonify({
+            "authenticated": True,
+            "username": getattr(current_user, "username", self.username),
+        }), 200
 
 
 auth_blueprint = AuthBlueprint()
