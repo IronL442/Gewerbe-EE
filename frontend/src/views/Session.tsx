@@ -3,6 +3,7 @@ import Select, { SingleValue } from 'react-select';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useNavigate } from 'react-router-dom';
 import jsPDF from 'jspdf';
+import axios from 'axios';
 import { api } from '../lib/api';
 import '../styles/session.css';
 
@@ -68,6 +69,10 @@ const Session: React.FC = () => {
         console.log('Student options:', opts); // Debug log
       } catch (error) {
         console.error('Error fetching students:', error);
+        if (axios.isAxiosError(error) && error.response?.status === 401) {
+          navigate('/login');
+          return;
+        }
       }
     };
 
@@ -209,6 +214,10 @@ const Session: React.FC = () => {
         setPrivacyConsent(false);
       }
     } catch (err: any) {
+      if (axios.isAxiosError(err) && err.response?.status === 401) {
+        navigate('/login');
+        return;
+      }
       setErrors({ general: err.response?.data?.error || 'Failed to log session' });
       setShowErrors(true);
     }

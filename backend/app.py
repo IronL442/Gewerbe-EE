@@ -1,4 +1,4 @@
-from flask import Flask, redirect, url_for, jsonify
+from flask import Flask, redirect, url_for, jsonify, request
 from flask_session import Session
 from models.database import database, migrate
 from utils.encryption import bcrypt
@@ -103,6 +103,14 @@ def load_user(user_id):
     if user_id == "1":
         return StaticUser()
     return None
+
+
+@login_manager.unauthorized_handler
+def _handle_unauthorized():
+    """Return JSON for API callers; fall back to SPA entry for others."""
+    if request.path.startswith("/api/"):
+        return jsonify({"error": "Authentication required"}), 401
+    return redirect("/login")
 
 
 # Ensure signature folder exists

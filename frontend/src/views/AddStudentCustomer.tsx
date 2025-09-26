@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { api } from '../lib/api';
 
 interface Customer {
@@ -55,6 +56,10 @@ const AddStudentCustomer: React.FC = () => {
       setCustomers(data);
     } catch (error) {
       console.error('Error fetching customers:', error);
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        navigate('/login');
+        return;
+      }
     }
   };
 
@@ -80,6 +85,10 @@ const AddStudentCustomer: React.FC = () => {
       });
     } catch (error: any) {
       console.error('Error creating customer:', error);
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        navigate('/login');
+        return;
+      }
       setError(error.response?.data?.error || 'Failed to create customer');
     } finally {
       setLoading(false);
@@ -102,6 +111,10 @@ const AddStudentCustomer: React.FC = () => {
       navigate('/session');
     } catch (error: any) {
       console.error('Error creating student:', error);
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        navigate('/login');
+        return;
+      }
       setError(error.response?.data?.error || 'Failed to create student');
     } finally {
       setLoading(false);
